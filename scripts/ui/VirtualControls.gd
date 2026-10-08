@@ -8,8 +8,8 @@ func _ready() -> void:
 	_bind_button($Root/Jump, "jump")
 	_bind_button($Root/Attack, "attack")
 	_bind_button($Root/Dodge, "dodge")
-	_bind_tap($Root/Weapon, "weapon_next")
 	_bind_tap($Root/Interact, "interact")
+	_bind_tap($Root/Inventory, "inventory")
 
 func _exit_tree() -> void:
 	for action in _pressed_actions.keys():
