@@ -12,16 +12,16 @@ extends Node2D
 @onready var flags_label: Label = $UI/HUD/FlagsLabel
 @onready var level_label: Label = $UI/HUD/LevelLabel
 @onready var xp_bar: ProgressBar = $UI/HUD/XPBar
-@onready var enemy = $Enemy
-@onready var traveler = $TravelerEvent
 @onready var narrative_controller: NarrativeEventController = $NarrativeEventController
 @onready var narrative_panel = $UI/NarrativePanel
 @onready var inventory_panel = $UI/InventoryPanel
 @onready var skills_panel = $UI/SkillsPanel
 @onready var virtual_controls = $VirtualControls
+@onready var passage_barrier = $PassageBarrier
 
 var _active_event_id: StringName = &""
 var _nearby_pickup: ItemPickup = null
+var _nearby_event: NarrativeInteractable = null
 
 func _ready() -> void:
 	player.health_changed.connect(_on_player_health_changed)
@@ -31,7 +31,6 @@ func _ready() -> void:
 	player.inventory_changed.connect(_on_inventory_changed)
 	player.progression_changed.connect(_refresh_progression)
 	player.died.connect(_on_player_died)
-	enemy.died.connect(_on_enemy_died)
 
 	narrative_controller.event_started.connect(_on_event_started)
 	narrative_controller.event_resolved.connect(_on_event_resolved)
@@ -45,6 +44,10 @@ func _ready() -> void:
 
 	for pickup in get_tree().get_nodes_in_group("item_pickup"):
 		pickup.picked_up.connect(_on_item_picked_up)
+
+	for enemy in get_tree().get_nodes_in_group("enemy"):
+		if enemy.has_signal("died"):
+			enemy.died.connect(_on_enemy_died)
 
 	_on_player_health_changed(player.health, player.max_health)
 	_on_player_stamina_changed(player.stamina, player.max_stamina)
@@ -72,14 +75,14 @@ func _process(_delta: float) -> void:
 			_nearby_pickup.pick_up()
 		return
 
-	var distance := player.global_position.distance_to(traveler.global_position)
-	var can_interact := distance <= 120.0 and narrative_controller.can_start(traveler.event_id)
-	if can_interact:
-		prompt_label.text = "E / INTERACTUAR — Viajero herido"
+	_nearby_event = _find_nearby_event()
+	if _nearby_event != null:
+		prompt_label.text = "E / USAR — " + _nearby_event.prompt_text
 		if Input.is_action_just_pressed("interact"):
-			narrative_controller.start_event(traveler.event_id)
-	else:
-		prompt_label.text = ""
+			narrative_controller.start_event(_nearby_event.event_id)
+		return
+
+	prompt_label.text = ""
 
 func _find_nearby_pickup() -> ItemPickup:
 	var nearest: ItemPickup = null
@@ -91,6 +94,20 @@ func _find_nearby_pickup() -> ItemPickup:
 		if distance <= best_distance:
 			best_distance = distance
 			nearest = pickup
+	return nearest
+
+func _find_nearby_event() -> NarrativeInteractable:
+	var nearest: NarrativeInteractable = null
+	var best_distance := 125.0
+	for event_node in get_tree().get_nodes_in_group("narrative_event"):
+		if not is_instance_valid(event_node):
+			continue
+		if not narrative_controller.can_start(event_node.event_id):
+			continue
+		var distance := player.global_position.distance_to(event_node.global_position)
+		if distance <= best_distance:
+			best_distance = distance
+			nearest = event_node
 	return nearest
 
 func _open_inventory() -> void:
@@ -115,7 +132,7 @@ func _on_inventory_equip_requested(item_id: StringName) -> void:
 func _on_inventory_closed() -> void:
 	player.can_control = true
 	virtual_controls.visible = true
-	status_label.text = "FASE 0.7 — Progresión y habilidades"
+	status_label.text = "FASE 0.8 — Camino de Valle Gris"
 
 func _on_skill_unlock_requested(skill_id: StringName) -> void:
 	if player.unlock_skill(skill_id):
@@ -126,7 +143,7 @@ func _on_skill_unlock_requested(skill_id: StringName) -> void:
 func _on_skills_closed() -> void:
 	player.can_control = true
 	virtual_controls.visible = true
-	status_label.text = "FASE 0.7 — Progresión y habilidades"
+	status_label.text = "FASE 0.8 — Camino de Valle Gris"
 
 func _on_item_picked_up(item_id: StringName, amount: int) -> void:
 	player.add_item(item_id, amount)
@@ -161,11 +178,11 @@ func _refresh_progression() -> void:
 	xp_bar.value = progression.experience
 
 func _on_player_died() -> void:
-	status_label.text = "Has caído — prototipo 0.7"
+	status_label.text = "Has caído — Camino de Valle Gris"
 
 func _on_enemy_died() -> void:
-	player.add_experience(120)
-	status_label.text = "Enemigo derrotado · +120 EXP"
+	player.add_experience(70)
+	status_label.text = "Enemigo derrotado · +70 EXP"
 	_refresh_progression()
 
 func _on_event_started(event_id: StringName, title: String, body: String, choices: Array) -> void:
@@ -181,30 +198,48 @@ func _on_choice_selected(choice_id: StringName) -> void:
 		return
 	narrative_controller.resolve_choice(_active_event_id, choice_id)
 
-func _on_event_resolved(_event_id: StringName, choice_id: StringName, result_text: String) -> void:
-	player.add_experience(60)
+func _on_event_resolved(event_id: StringName, choice_id: StringName, result_text: String) -> void:
+	player.add_experience(50)
+
 	match choice_id:
 		&"help":
 			player.heal(25)
-			traveler.modulate = Color(0.55, 0.85, 0.62, 1.0)
-			status_label.text = "Ayudaste al viajero · +60 EXP"
+			$TravelerEvent.modulate = Color(0.55, 0.85, 0.62, 1.0)
 		&"investigate":
-			enemy.global_position.x = 1240.0
-			traveler.modulate = Color(0.70, 0.82, 1.0, 1.0)
-			status_label.text = "Emboscada descubierta · +60 EXP"
+			var ambusher = get_node_or_null("Ambusher")
+			if ambusher != null:
+				ambusher.global_position.x += 260.0
 		&"intimidate":
-			traveler.modulate = Color(0.75, 0.55, 0.55, 1.0)
-			status_label.text = "Carta conseguida · +60 EXP"
+			$TravelerEvent.modulate = Color(0.75, 0.55, 0.55, 1.0)
 		&"leave":
-			enemy.global_position.x = maxf(player.global_position.x + 330.0, 650.0)
-			traveler.modulate = Color(0.42, 0.42, 0.42, 1.0)
-			status_label.text = "Abandonaste al viajero · +60 EXP"
+			var ambusher = get_node_or_null("Ambusher")
+			if ambusher != null:
+				ambusher.global_position.x = maxf(player.global_position.x + 300.0, 850.0)
+		&"study_shrine":
+			player.add_experience(30)
+			status_label.text = "Comprendiste las runas del santuario"
+		&"pray_shrine":
+			player.heal(15)
+			status_label.text = "El santuario te devuelve algo de fuerza"
+		&"disturb_shrine":
+			player.add_item(&"apprentice_staff")
+			status_label.text = "Hallaste un báculo bajo la losa"
+		&"force_passage", &"hidden_route":
+			_open_passage()
+			status_label.text = "Ruta hacia Valle Gris abierta"
+		&"turn_back":
+			status_label.text = "El paso sigue bloqueado"
 
 	narrative_panel.show_result(result_text + "
 
-Has obtenido 60 EXP.")
+Has obtenido 50 EXP.")
 	_refresh_flags()
 	_refresh_progression()
+
+func _open_passage() -> void:
+	if is_instance_valid(passage_barrier):
+		passage_barrier.queue_free()
+	narrative_controller.world_state.set_flag(&"road_to_valle_gris_open", true)
 
 func _on_narrative_dismissed() -> void:
 	_active_event_id = &""
