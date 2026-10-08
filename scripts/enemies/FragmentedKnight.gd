@@ -40,9 +40,9 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 
-	var now := Time.get_ticks_msec() / 1000.0
-	var dx := target.global_position.x - global_position.x
-	var distance := absf(dx)
+	var now: float = Time.get_ticks_msec() / 1000.0
+	var dx: float = target.global_position.x - global_position.x
+	var distance: float = absf(dx)
 
 	match state:
 		State.DORMANT:
@@ -50,7 +50,7 @@ func _physics_process(delta: float) -> void:
 			if distance <= detection_range:
 				state = State.CHASE
 		State.CHASE:
-			var speed := 86.0 if phase == 1 else 132.0
+			var speed: float = 86.0 if phase == 1 else 132.0
 			if distance <= (118.0 if phase == 1 else 148.0):
 				_begin_windup(now, dx)
 			else:
@@ -77,7 +77,7 @@ func _physics_process(delta: float) -> void:
 func _begin_windup(now: float, dx: float) -> void:
 	state = State.WINDUP
 	_attack_index += 1
-	var windup := 0.46 if phase == 1 else 0.26
+	var windup: float = 0.46 if phase == 1 else 0.26
 	_state_until = now + windup
 	hitbox.position.x = 76.0 * sign(dx)
 
@@ -86,7 +86,7 @@ func _begin_windup(now: float, dx: float) -> void:
 	tween.tween_property(visual, "scale", Vector2.ONE, windup * 0.3)
 
 func _perform_attack(now: float, dx: float) -> void:
-	var direction := sign(dx)
+	var direction: float = signf(dx)
 	if direction == 0.0:
 		direction = 1.0
 
@@ -148,7 +148,7 @@ func take_damage(amount: int, source_position := Vector2.ZERO, knockback := 160.
 		return
 
 	if source_position != Vector2.ZERO:
-		var dir := sign(global_position.x - source_position.x)
+		var dir: float = signf(global_position.x - source_position.x)
 		velocity.x = dir * minf(knockback, 180.0)
 
 func resolve_as_killed() -> void:
