@@ -22,10 +22,12 @@ extends Node2D
 @onready var boss_event: NarrativeInteractable = $FragmentedKnightChoice
 @onready var boss_bar: ProgressBar = $UI/HUD/BossBar
 @onready var boss_label: Label = $UI/HUD/BossLabel
+@onready var chronicle_panel = $UI/ChroniclePanel
 
 var _active_event_id: StringName = &""
 var _nearby_pickup: ItemPickup = null
 var _nearby_event: NarrativeInteractable = null
+var _adventure_finished := false
 
 func _ready() -> void:
 	player.health_changed.connect(_on_player_health_changed)
@@ -59,6 +61,9 @@ func _ready() -> void:
 	boss.died.connect(_on_boss_died)
 	boss_bar.visible = false
 	boss_label.visible = false
+	chronicle_panel.restarted.connect(_restart_adventure)
+	if not narrative_controller.world_state.discovered_locations.has(&"camino_valle_gris"):
+		narrative_controller.world_state.discovered_locations.append(&"camino_valle_gris")
 
 	_on_player_health_changed(player.health, player.max_health)
 	_on_player_stamina_changed(player.stamina, player.max_stamina)
@@ -67,7 +72,14 @@ func _ready() -> void:
 	_refresh_progression()
 
 func _process(_delta: float) -> void:
-	if narrative_panel.visible or inventory_panel.visible or skills_panel.visible:
+	if _adventure_finished:
+		return
+
+	if narrative_controller.world_state.has_flag(&"boss_resolved") and player.global_position.x >= 3820.0:
+		_finish_vertical_slice()
+		return
+
+	if narrative_panel.visible or inventory_panel.visible or skills_panel.visible or chronicle_panel.visible:
 		prompt_label.text = ""
 		return
 
@@ -143,7 +155,7 @@ func _on_inventory_equip_requested(item_id: StringName) -> void:
 func _on_inventory_closed() -> void:
 	player.can_control = true
 	virtual_controls.visible = true
-	status_label.text = "FASE 0.8 — Camino de Valle Gris"
+	status_label.text = "FASE 0.10 — Vertical Slice"
 
 func _on_skill_unlock_requested(skill_id: StringName) -> void:
 	if player.unlock_skill(skill_id):
@@ -189,7 +201,10 @@ func _refresh_progression() -> void:
 	xp_bar.value = progression.experience
 
 func _on_player_died() -> void:
-	status_label.text = "Has caído — Camino de Valle Gris"
+	status_label.text = "Tu aventura termina en el Camino de Valle Gris"
+	await get_tree().create_timer(0.45).timeout
+	if not _adventure_finished:
+		_finish_vertical_slice()
 
 func _on_enemy_died() -> void:
 	player.add_experience(70)
@@ -304,5 +319,29 @@ func _on_boss_broken() -> void:
 func _on_boss_died() -> void:
 	boss_bar.visible = false
 	boss_label.visible = false
-	player.add_experience(220)
 	_refresh_progression()
+
+func _finish_vertical_slice() -> void:
+	if _adventure_finished:
+		return
+	_adventure_finished = true
+	player.can_control = false
+	player.velocity = Vector2.ZERO
+	virtual_controls.visible = false
+	boss_bar.visible = false
+	boss_label.visible = false
+
+	var world := narrative_controller.world_state
+	if player.health > 0 and world.has_flag(&"boss_resolved"):
+		world.set_flag(&"valle_gris_reached", true)
+		if not world.discovered_locations.has(&"valle_gris"):
+			world.discovered_locations.append(&"valle_gris")
+		status_label.text = "Has llegado a Valle Gris"
+	else:
+		world.set_flag(&"adventurer_fallen", true)
+
+	chronicle_panel.show_chronicle(world, player)
+	_refresh_flags()
+
+func _restart_adventure() -> void:
+	get_tree().reload_current_scene()
