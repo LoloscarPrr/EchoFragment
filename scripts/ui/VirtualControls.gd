@@ -7,6 +7,7 @@ func _ready() -> void:
 	_bind_button($Root/Right, "move_right")
 	_bind_button($Root/Jump, "jump")
 	_bind_button($Root/Attack, "attack")
+	_bind_button($Root/Dodge, "dodge")
 
 func _exit_tree() -> void:
 	for action in _pressed_actions.keys():
