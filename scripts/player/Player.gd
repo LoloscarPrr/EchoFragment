@@ -4,6 +4,7 @@ signal health_changed(current: int, maximum: int)
 signal stamina_changed(current: float, maximum: float)
 signal combo_changed(step: int)
 signal weapon_changed(display_name: String)
+signal inventory_changed
 signal died
 
 enum WeaponMode { SWORD, BOW, STAFF, DAGGERS }
@@ -27,6 +28,7 @@ var stamina: float
 var facing := 1.0
 var can_control := true
 var weapon_mode := WeaponMode.SWORD
+var inventory := Inventory.new()
 
 var _combo_step := 0
 var _last_attack_time := -99.0
@@ -48,6 +50,8 @@ func _ready() -> void:
 	_visual_base_scale = visual.scale
 	health_changed.emit(health, max_health)
 	stamina_changed.emit(stamina, max_stamina)
+	inventory.add_item(&"rusted_sword")
+	inventory.equipped_weapon_changed.connect(_on_equipped_weapon_changed)
 	weapon_changed.emit(_weapon_name())
 
 func _physics_process(delta: float) -> void:
@@ -78,23 +82,36 @@ func _physics_process(delta: float) -> void:
 	if can_control and Input.is_action_just_pressed("dodge"):
 		_try_dodge(direction, now)
 
-	if can_control and Input.is_action_just_pressed("weapon_next"):
-		cycle_weapon()
-
 	if can_control and Input.is_action_just_pressed("attack"):
 		_try_attack(now)
 
 	move_and_slide()
 	_update_visual(delta)
 
-func cycle_weapon() -> void:
-	if Time.get_ticks_msec() / 1000.0 < _attack_locked_until:
-		return
-	weapon_mode = (weapon_mode + 1) % 4
+func equip_weapon(item_id: StringName) -> bool:
+	return inventory.equip_weapon(item_id)
+
+func add_item(item_id: StringName, amount: int = 1) -> void:
+	inventory.add_item(item_id, amount)
+	inventory_changed.emit()
+
+func _on_equipped_weapon_changed(item_id: StringName) -> void:
+	match item_id:
+		&"rusted_sword":
+			weapon_mode = WeaponMode.SWORD
+		&"hunter_bow":
+			weapon_mode = WeaponMode.BOW
+		&"apprentice_staff":
+			weapon_mode = WeaponMode.STAFF
+		&"shadow_daggers":
+			weapon_mode = WeaponMode.DAGGERS
+		_:
+			return
 	_combo_step = 0
 	combo_changed.emit(0)
 	weapon_changed.emit(_weapon_name())
 	_apply_weapon_visual()
+	inventory_changed.emit()
 
 func _weapon_name() -> String:
 	match weapon_mode:
