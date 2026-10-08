@@ -57,7 +57,7 @@ jobs:
           EOF
 
       - name: Restore playtest signing key
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ~/.echofragment-signing
           key: echofragment-playtest-signing-v1
@@ -68,6 +68,18 @@ jobs:
           if [ ! -f "$HOME/.echofragment-signing/playtest.keystore" ]; then
             keytool -genkeypair -v               -keystore "$HOME/.echofragment-signing/playtest.keystore"               -storepass echofragmentplaytest               -keypass echofragmentplaytest               -alias echofragment               -keyalg RSA               -keysize 2048               -validity 3650               -dname "CN=EchoFragment Playtest, OU=Internal, O=EchoFragment, C=CL"
           fi
+
+      - name: Save playtest signing key
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.echofragment-signing
+          key: echofragment-playtest-signing-v1
+
+      - name: Configure playtest signing in preset
+        run: |
+          sed -i 's|keystore/debug=""|keystore/debug="/home/runner/.echofragment-signing/playtest.keystore"|' export_presets.cfg
+          sed -i 's|keystore/debug_user=""|keystore/debug_user="echofragment"|' export_presets.cfg
+          sed -i 's|keystore/debug_password=""|keystore/debug_password="echofragmentplaytest"|' export_presets.cfg
 
       - name: Import project
         run: |
