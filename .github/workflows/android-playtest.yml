@@ -11,95 +11,41 @@ on:
       - "export_presets.cfg"
       - ".github/workflows/android-playtest.yml"
 
+env:
+  GODOT_VERSION: "4.3"
+
 jobs:
   build-apk:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    container:
+      image: barichello/godot-ci:4.3
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "17"
-
-      - name: Install Android SDK packages
+      - name: Setup Godot CI
         run: |
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"             "platform-tools"             "build-tools;34.0.0"             "platforms;android-34" \
-            "cmake;3.10.2.4988404" \
-            "ndk;23.2.8568313"
+          mkdir -p ~/.local/share/godot/export_templates/
+          mkdir -p ~/.config/
+          mv /root/.config/godot ~/.config/godot
+          mv /root/.local/share/godot/export_templates/4.3.stable ~/.local/share/godot/export_templates/4.3.stable
+          test -f /root/debug.keystore
+          test -f ~/.config/godot/editor_settings-4.3.tres
 
-      - name: Install Godot 4.3
+      - name: Validate project
         run: |
-          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
-          unzip -q Godot_v4.3-stable_linux.x86_64.zip
-          chmod +x Godot_v4.3-stable_linux.x86_64
-
-      - name: Install Godot Android export templates
-        run: |
-          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
-          rm -rf /tmp/godot-templates
-          mkdir -p /tmp/godot-templates
-          unzip -q Godot_v4.3-stable_export_templates.tpz -d /tmp/godot-templates
-          mkdir -p "$HOME/.local/share/godot/export_templates/4.3.stable"
-          cp -R /tmp/godot-templates/templates/. "$HOME/.local/share/godot/export_templates/4.3.stable/"
-
-      - name: Configure Godot Android paths
-        run: |
-          mkdir -p "$HOME/.config/godot"
-          cat > "$HOME/.config/godot/editor_settings-4.3.tres" <<EOF
-          [gd_resource type="EditorSettings" format=3]
-
-          [resource]
-          export/android/android_sdk_path = "$ANDROID_HOME"
-          export/android/java_sdk_path = "$JAVA_HOME"
-          export/android/debug_keystore = "$HOME/.echofragment-signing/playtest.keystore"
-          export/android/debug_keystore_user = "echofragment"
-          export/android/debug_keystore_pass = "echofragmentplaytest"
-          EOF
-          cp "$HOME/.config/godot/editor_settings-4.3.tres" "$HOME/.config/godot/editor_settings-4.tres"
-
-      - name: Restore playtest signing key
-        uses: actions/cache/restore@v4
-        with:
-          path: ~/.echofragment-signing
-          key: echofragment-playtest-signing-v1
-
-      - name: Create playtest signing key if needed
-        run: |
-          mkdir -p "$HOME/.echofragment-signing"
-          if [ ! -f "$HOME/.echofragment-signing/playtest.keystore" ]; then
-            keytool -genkeypair -v               -keystore "$HOME/.echofragment-signing/playtest.keystore"               -storepass echofragmentplaytest               -keypass echofragmentplaytest               -alias echofragment               -keyalg RSA               -keysize 2048               -validity 3650               -dname "CN=EchoFragment Playtest, OU=Internal, O=EchoFragment, C=CL"
-          fi
-
-      - name: Save playtest signing key
-        uses: actions/cache/save@v4
-        with:
-          path: ~/.echofragment-signing
-          key: echofragment-playtest-signing-v1
-
-      - name: Configure playtest signing in preset
-        run: |
-          sed -i 's|keystore/debug=""|keystore/debug="/home/runner/.echofragment-signing/playtest.keystore"|' export_presets.cfg
-          sed -i 's|keystore/debug_user=""|keystore/debug_user="echofragment"|' export_presets.cfg
-          sed -i 's|keystore/debug_password=""|keystore/debug_password="echofragmentplaytest"|' export_presets.cfg
-
-      - name: Import project
-        run: |
-          ./Godot_v4.3-stable_linux.x86_64 --headless --path . --editor --quit
+          godot --headless --path . --editor --quit
 
       - name: Export APK
         env:
-          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /home/runner/.echofragment-signing/playtest.keystore
-          GODOT_ANDROID_KEYSTORE_DEBUG_USER: echofragment
-          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: echofragmentplaytest
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /root/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
           mkdir -p build
-          ./Godot_v4.3-stable_linux.x86_64 --headless --verbose --path . --export-debug "Android Playtest" build/EchoFragment-0.10.1.apk
-          test -f build/EchoFragment-0.10.1.apk
+          godot --headless --verbose --path . --export-debug "Android Playtest" build/EchoFragment-0.10.1.apk
+          test -s build/EchoFragment-0.10.1.apk
           ls -lh build/EchoFragment-0.10.1.apk
 
       - name: Upload APK
