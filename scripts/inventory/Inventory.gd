@@ -1,7 +1,7 @@
 class_name Inventory
 extends Resource
 
-signal changed
+signal inventory_state_changed
 signal equipped_weapon_changed(weapon_id: StringName)
 
 @export var items: Dictionary = {}
@@ -9,7 +9,7 @@ signal equipped_weapon_changed(weapon_id: StringName)
 
 func add_item(item_id: StringName, amount: int = 1) -> void:
 	items[item_id] = int(items.get(item_id, 0)) + amount
-	changed.emit()
+	inventory_state_changed.emit()
 
 func remove_item(item_id: StringName, amount: int = 1) -> bool:
 	var current := int(items.get(item_id, 0))
@@ -20,7 +20,7 @@ func remove_item(item_id: StringName, amount: int = 1) -> bool:
 		items.erase(item_id)
 	else:
 		items[item_id] = current
-	changed.emit()
+	inventory_state_changed.emit()
 	return true
 
 func has_item(item_id: StringName, amount: int = 1) -> bool:
@@ -31,5 +31,5 @@ func equip_weapon(item_id: StringName) -> bool:
 		return false
 	equipped_weapon = item_id
 	equipped_weapon_changed.emit(item_id)
-	changed.emit()
+	inventory_state_changed.emit()
 	return true
