@@ -10,11 +10,14 @@ extends Node2D
 @onready var status_label: Label = $UI/HUD/StatusLabel
 @onready var prompt_label: Label = $UI/HUD/PromptLabel
 @onready var flags_label: Label = $UI/HUD/FlagsLabel
+@onready var level_label: Label = $UI/HUD/LevelLabel
+@onready var xp_bar: ProgressBar = $UI/HUD/XPBar
 @onready var enemy = $Enemy
 @onready var traveler = $TravelerEvent
 @onready var narrative_controller: NarrativeEventController = $NarrativeEventController
 @onready var narrative_panel = $UI/NarrativePanel
 @onready var inventory_panel = $UI/InventoryPanel
+@onready var skills_panel = $UI/SkillsPanel
 @onready var virtual_controls = $VirtualControls
 
 var _active_event_id: StringName = &""
@@ -26,6 +29,7 @@ func _ready() -> void:
 	player.combo_changed.connect(_on_combo_changed)
 	player.weapon_changed.connect(_on_weapon_changed)
 	player.inventory_changed.connect(_on_inventory_changed)
+	player.progression_changed.connect(_refresh_progression)
 	player.died.connect(_on_player_died)
 	enemy.died.connect(_on_enemy_died)
 
@@ -36,6 +40,8 @@ func _ready() -> void:
 
 	inventory_panel.equip_requested.connect(_on_inventory_equip_requested)
 	inventory_panel.closed.connect(_on_inventory_closed)
+	skills_panel.unlock_requested.connect(_on_skill_unlock_requested)
+	skills_panel.closed.connect(_on_skills_closed)
 
 	for pickup in get_tree().get_nodes_in_group("item_pickup"):
 		pickup.picked_up.connect(_on_item_picked_up)
@@ -44,14 +50,19 @@ func _ready() -> void:
 	_on_player_stamina_changed(player.stamina, player.max_stamina)
 	_on_weapon_changed("Espada")
 	_refresh_flags()
+	_refresh_progression()
 
 func _process(_delta: float) -> void:
-	if narrative_panel.visible or inventory_panel.visible:
+	if narrative_panel.visible or inventory_panel.visible or skills_panel.visible:
 		prompt_label.text = ""
 		return
 
 	if Input.is_action_just_pressed("inventory"):
 		_open_inventory()
+		return
+
+	if Input.is_action_just_pressed("skills"):
+		_open_skills()
 		return
 
 	_nearby_pickup = _find_nearby_pickup()
@@ -89,6 +100,13 @@ func _open_inventory() -> void:
 	inventory_panel.open_inventory(player.inventory)
 	status_label.text = "Inventario abierto"
 
+func _open_skills() -> void:
+	player.can_control = false
+	player.velocity = Vector2.ZERO
+	virtual_controls.visible = false
+	skills_panel.open_skills(player.progression)
+	status_label.text = "Habilidades"
+
 func _on_inventory_equip_requested(item_id: StringName) -> void:
 	if player.equip_weapon(item_id):
 		inventory_panel.open_inventory(player.inventory)
@@ -97,7 +115,18 @@ func _on_inventory_equip_requested(item_id: StringName) -> void:
 func _on_inventory_closed() -> void:
 	player.can_control = true
 	virtual_controls.visible = true
-	status_label.text = "FASE 0.6 — Inventario y equipamiento"
+	status_label.text = "FASE 0.7 — Progresión y habilidades"
+
+func _on_skill_unlock_requested(skill_id: StringName) -> void:
+	if player.unlock_skill(skill_id):
+		skills_panel.open_skills(player.progression)
+		status_label.text = "Habilidad aprendida"
+		_refresh_progression()
+
+func _on_skills_closed() -> void:
+	player.can_control = true
+	virtual_controls.visible = true
+	status_label.text = "FASE 0.7 — Progresión y habilidades"
 
 func _on_item_picked_up(item_id: StringName, amount: int) -> void:
 	player.add_item(item_id, amount)
@@ -124,11 +153,20 @@ func _on_combo_changed(step: int) -> void:
 func _on_weapon_changed(display_name: String) -> void:
 	weapon_label.text = "ARMA: " + display_name
 
+func _refresh_progression() -> void:
+	var progression := player.progression
+	var required := progression.xp_required_for_level(progression.level)
+	level_label.text = "NIVEL %d · PUNTOS %d" % [progression.level, progression.skill_points]
+	xp_bar.max_value = required
+	xp_bar.value = progression.experience
+
 func _on_player_died() -> void:
-	status_label.text = "Has caído — prototipo 0.6"
+	status_label.text = "Has caído — prototipo 0.7"
 
 func _on_enemy_died() -> void:
-	status_label.text = "Enemigo derrotado"
+	player.add_experience(120)
+	status_label.text = "Enemigo derrotado · +120 EXP"
+	_refresh_progression()
 
 func _on_event_started(event_id: StringName, title: String, body: String, choices: Array) -> void:
 	_active_event_id = event_id
@@ -144,25 +182,29 @@ func _on_choice_selected(choice_id: StringName) -> void:
 	narrative_controller.resolve_choice(_active_event_id, choice_id)
 
 func _on_event_resolved(_event_id: StringName, choice_id: StringName, result_text: String) -> void:
+	player.add_experience(60)
 	match choice_id:
 		&"help":
 			player.heal(25)
 			traveler.modulate = Color(0.55, 0.85, 0.62, 1.0)
-			status_label.text = "Ayudaste al viajero · vida restaurada"
+			status_label.text = "Ayudaste al viajero · +60 EXP"
 		&"investigate":
 			enemy.global_position.x = 1240.0
 			traveler.modulate = Color(0.70, 0.82, 1.0, 1.0)
-			status_label.text = "Emboscada descubierta · enemigo revelado a distancia"
+			status_label.text = "Emboscada descubierta · +60 EXP"
 		&"intimidate":
 			traveler.modulate = Color(0.75, 0.55, 0.55, 1.0)
-			status_label.text = "Conseguiste la carta sellada"
+			status_label.text = "Carta conseguida · +60 EXP"
 		&"leave":
 			enemy.global_position.x = maxf(player.global_position.x + 330.0, 650.0)
 			traveler.modulate = Color(0.42, 0.42, 0.42, 1.0)
-			status_label.text = "Abandonaste al viajero · el peligro se acerca"
+			status_label.text = "Abandonaste al viajero · +60 EXP"
 
-	narrative_panel.show_result(result_text)
+	narrative_panel.show_result(result_text + "
+
+Has obtenido 60 EXP.")
 	_refresh_flags()
+	_refresh_progression()
 
 func _on_narrative_dismissed() -> void:
 	_active_event_id = &""
