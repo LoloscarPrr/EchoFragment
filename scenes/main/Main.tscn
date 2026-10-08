@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/inventory/ItemPickup.gd" id="10_pickup"]
 [ext_resource type="Script" path="res://scripts/ui/InventoryPanel.gd" id="11_inventory"]
 [ext_resource type="Script" path="res://scripts/ui/SkillsPanel.gd" id="12_skills"]
+[ext_resource type="Script" path="res://scripts/enemies/FragmentedKnight.gd" id="13_boss"]
 
 [sub_resource type="RectangleShape2D" id="PlayerShape"]
 size = Vector2(44, 84)
@@ -219,11 +220,11 @@ script = ExtResource("3_enemy")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ambusher"]
 shape = SubResource("EnemyShape")
 
-[node name="Visual" type="Polygon2D" parent="Enemy"]
+[node name="Visual" type="Polygon2D" parent="Ambusher"]
 polygon = PackedVector2Array(-23, -37, 23, -37, 28, 37, -28, 37)
 color = Color(0.58, 0.19, 0.19, 1)
 
-[node name="Hurtbox" type="Area2D" parent="Enemy"]
+[node name="Hurtbox" type="Area2D" parent="Ambusher"]
 collision_layer = 32
 collision_mask = 0
 monitoring = false
@@ -233,7 +234,7 @@ script = ExtResource("6_hurtbox")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ambusher/Hurtbox"]
 shape = SubResource("EnemyShape")
 
-[node name="AttackHitbox" type="Area2D" parent="Enemy"]
+[node name="AttackHitbox" type="Area2D" parent="Ambusher"]
 position = Vector2(-58, 0)
 collision_layer = 0
 collision_mask = 16
@@ -316,6 +317,63 @@ script = ExtResource("5_hitbox")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="GateWatcher/AttackHitbox"]
 shape = SubResource("AttackShape")
 
+[node name="FragmentedKnight" type="CharacterBody2D" parent="."]
+position = Vector2(3520, 550)
+collision_layer = 4
+collision_mask = 3
+script = ExtResource("13_boss")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FragmentedKnight"]
+shape = SubResource("EnemyShape")
+
+[node name="Visual" type="Polygon2D" parent="FragmentedKnight"]
+polygon = PackedVector2Array(-34, -58, 30, -58, 42, 52, -42, 52)
+color = Color(0.28, 0.30, 0.36, 1)
+
+[node name="Helm" type="Polygon2D" parent="FragmentedKnight/Visual"]
+polygon = PackedVector2Array(-28, -22, 24, -22, 32, 6, -30, 6)
+position = Vector2(0, -34)
+color = Color(0.45, 0.48, 0.54, 1)
+
+[node name="Crack" type="Polygon2D" parent="FragmentedKnight/Visual"]
+polygon = PackedVector2Array(-3, -42, 5, -24, -2, -8, 8, 10, 0, 34, -6, 10, 1, -6, -7, -24)
+color = Color(0.48, 0.18, 0.22, 1)
+
+[node name="Hurtbox" type="Area2D" parent="FragmentedKnight"]
+collision_layer = 32
+collision_mask = 0
+monitoring = false
+monitorable = true
+script = ExtResource("6_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FragmentedKnight/Hurtbox"]
+shape = SubResource("EnemyShape")
+
+[node name="AttackHitbox" type="Area2D" parent="FragmentedKnight"]
+position = Vector2(-78, 0)
+collision_layer = 0
+collision_mask = 16
+monitoring = true
+monitorable = false
+script = ExtResource("5_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FragmentedKnight/AttackHitbox"]
+shape = SubResource("AttackShape")
+
+[node name="FragmentedKnightChoice" type="Area2D" parent="."]
+visible = false
+position = Vector2(3520, 550)
+collision_layer = 8
+collision_mask = 0
+monitoring = true
+monitorable = true
+script = ExtResource("8_interactable")
+event_id = &"fragmented_knight_choice"
+prompt_text = "Decidir destino del Caballero"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FragmentedKnightChoice"]
+shape = SubResource("InteractShape")
+
 [node name="ValleGrisSign" type="Label" parent="."]
 position = Vector2(3220, 470)
 text = "VALLE GRIS →"
@@ -380,7 +438,7 @@ offset_left = 28.0
 offset_top = 122.0
 offset_right = 490.0
 offset_bottom = 152.0
-text = "FASE 0.8 — Camino de Valle Gris"
+text = "FASE 0.9 — Caballero Fragmentado"
 
 [node name="LevelLabel" type="Label" parent="UI/HUD"]
 offset_left = 28.0
@@ -395,6 +453,31 @@ offset_top = 210.0
 offset_right = 330.0
 offset_bottom = 230.0
 value = 0.0
+show_percentage = false
+
+[node name="BossLabel" type="Label" parent="UI/HUD"]
+visible = false
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 390.0
+offset_top = 24.0
+offset_right = -390.0
+offset_bottom = 50.0
+grow_horizontal = 2
+text = "CABALLERO FRAGMENTADO"
+horizontal_alignment = 1
+
+[node name="BossBar" type="ProgressBar" parent="UI/HUD"]
+visible = false
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 390.0
+offset_top = 52.0
+offset_right = -390.0
+offset_bottom = 76.0
+grow_horizontal = 2
+value = 320.0
+max_value = 320.0
 show_percentage = false
 
 [node name="PromptLabel" type="Label" parent="UI/HUD"]
