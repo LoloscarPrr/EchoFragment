@@ -18,6 +18,10 @@ extends Node2D
 @onready var skills_panel = $UI/SkillsPanel
 @onready var virtual_controls = $VirtualControls
 @onready var passage_barrier = $PassageBarrier
+@onready var boss: FragmentedKnight = $FragmentedKnight
+@onready var boss_event: NarrativeInteractable = $FragmentedKnightChoice
+@onready var boss_bar: ProgressBar = $UI/HUD/BossBar
+@onready var boss_label: Label = $UI/HUD/BossLabel
 
 var _active_event_id: StringName = &""
 var _nearby_pickup: ItemPickup = null
@@ -48,6 +52,13 @@ func _ready() -> void:
 	for enemy in get_tree().get_nodes_in_group("enemy"):
 		if enemy.has_signal("died"):
 			enemy.died.connect(_on_enemy_died)
+
+	boss.health_changed.connect(_on_boss_health_changed)
+	boss.phase_changed.connect(_on_boss_phase_changed)
+	boss.broken.connect(_on_boss_broken)
+	boss.died.connect(_on_boss_died)
+	boss_bar.visible = false
+	boss_label.visible = false
 
 	_on_player_health_changed(player.health, player.max_health)
 	_on_player_stamina_changed(player.stamina, player.max_stamina)
@@ -199,7 +210,10 @@ func _on_choice_selected(choice_id: StringName) -> void:
 	narrative_controller.resolve_choice(_active_event_id, choice_id)
 
 func _on_event_resolved(event_id: StringName, choice_id: StringName, result_text: String) -> void:
-	player.add_experience(50)
+	var event_xp := 50
+	if event_id == &"fragmented_knight_choice":
+		event_xp = 180
+	player.add_experience(event_xp)
 
 	match choice_id:
 		&"help":
@@ -229,6 +243,20 @@ func _on_event_resolved(event_id: StringName, choice_id: StringName, result_text
 			status_label.text = "Ruta hacia Valle Gris abierta"
 		&"turn_back":
 			status_label.text = "El paso sigue bloqueado"
+		&"knight_finish":
+			boss.resolve_as_killed()
+			narrative_controller.world_state.set_flag(&"boss_resolved", true)
+			status_label.text = "Caballero Fragmentado derrotado"
+		&"knight_cleanse":
+			boss.resolve_as_released()
+			narrative_controller.world_state.set_flag(&"boss_resolved", true)
+			narrative_controller.world_state.set_flag(&"guardian_saved", true)
+			status_label.text = "La corrupción fue rota"
+		&"knight_letter":
+			boss.resolve_as_released()
+			narrative_controller.world_state.set_flag(&"boss_resolved", true)
+			narrative_controller.world_state.set_flag(&"guardian_remembers", true)
+			status_label.text = "El guardián recordó su juramento"
 
 	narrative_panel.show_result(result_text + "
 
@@ -254,3 +282,27 @@ func _refresh_flags() -> void:
 		if bool(world.flags[key]):
 			names.append(String(key))
 	flags_label.text = "MUNDO: " + (", ".join(names) if not names.is_empty() else "sin decisiones todavía")
+
+
+func _on_boss_health_changed(current: int, maximum: int) -> void:
+	boss_bar.visible = true
+	boss_label.visible = true
+	boss_bar.max_value = maximum
+	boss_bar.value = current
+	boss_label.text = "CABALLERO FRAGMENTADO · %d / %d" % [current, maximum]
+
+func _on_boss_phase_changed(phase: int) -> void:
+	status_label.text = "Caballero Fragmentado · Fase %d" % phase
+
+func _on_boss_broken() -> void:
+	boss_event.add_to_group("narrative_event")
+	boss_event.visible = true
+	boss_bar.value = boss.health
+	status_label.text = "El Caballero Fragmentado ha caído de rodillas"
+	prompt_label.text = "Acércate y decide su destino"
+
+func _on_boss_died() -> void:
+	boss_bar.visible = false
+	boss_label.visible = false
+	player.add_experience(220)
+	_refresh_progression()
