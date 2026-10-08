@@ -29,11 +29,12 @@ func _refresh(inventory: Inventory) -> void:
 
 	equipped_label.text = "Equipada: " + NAMES.get(inventory.equipped_weapon, String(inventory.equipped_weapon))
 
-	for item_id in WEAPON_ORDER:
+	for item in WEAPON_ORDER:
+		var item_id: StringName = item
 		if not inventory.has_item(item_id):
 			continue
-		var button := Button.new()
-		var is_equipped := inventory.equipped_weapon == item_id
+		var button: Button = Button.new()
+		var is_equipped: bool = inventory.equipped_weapon == item_id
 		button.text = (NAMES[item_id] as String) + ("  [EQUIPADA]" if is_equipped else "")
 		button.custom_minimum_size.y = 48.0
 		button.disabled = is_equipped
