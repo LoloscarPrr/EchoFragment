@@ -1,9 +1,11 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/main/Main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/player/Player.gd" id="2_player"]
 [ext_resource type="Script" path="res://scripts/enemies/Enemy.gd" id="3_enemy"]
 [ext_resource type="Script" path="res://scripts/ui/VirtualControls.gd" id="4_controls"]
+[ext_resource type="Script" path="res://scripts/combat/Hitbox.gd" id="5_hitbox"]
+[ext_resource type="Script" path="res://scripts/combat/Hurtbox.gd" id="6_hurtbox"]
 
 [sub_resource type="RectangleShape2D" id="PlayerShape"]
 size = Vector2(44, 84)
@@ -58,14 +60,25 @@ color = Color(0.76, 0.78, 0.83, 1)
 polygon = PackedVector2Array(18, -8, 74, -3, 74, 3, 18, 8)
 color = Color(0.72, 0.77, 0.82, 1)
 
-[node name="AttackArea" type="Area2D" parent="Player"]
+[node name="Hurtbox" type="Area2D" parent="Player"]
+collision_layer = 16
+collision_mask = 0
+monitoring = false
+monitorable = true
+script = ExtResource("6_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/Hurtbox"]
+shape = SubResource("PlayerShape")
+
+[node name="AttackHitbox" type="Area2D" parent="Player"]
 position = Vector2(58, 0)
 collision_layer = 0
-collision_mask = 4
+collision_mask = 32
 monitoring = true
 monitorable = false
+script = ExtResource("5_hitbox")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/AttackArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/AttackHitbox"]
 shape = SubResource("AttackShape")
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
@@ -89,6 +102,27 @@ shape = SubResource("EnemyShape")
 [node name="Visual" type="Polygon2D" parent="Enemy"]
 polygon = PackedVector2Array(-23, -37, 23, -37, 28, 37, -28, 37)
 color = Color(0.58, 0.19, 0.19, 1)
+
+[node name="Hurtbox" type="Area2D" parent="Enemy"]
+collision_layer = 32
+collision_mask = 0
+monitoring = false
+monitorable = true
+script = ExtResource("6_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemy/Hurtbox"]
+shape = SubResource("EnemyShape")
+
+[node name="AttackHitbox" type="Area2D" parent="Enemy"]
+position = Vector2(-58, 0)
+collision_layer = 0
+collision_mask = 16
+monitoring = true
+monitorable = false
+script = ExtResource("5_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemy/AttackHitbox"]
+shape = SubResource("AttackShape")
 
 [node name="UI" type="CanvasLayer" parent="."]
 
@@ -116,23 +150,45 @@ offset_right = 250.0
 offset_bottom = 50.0
 text = "VIDA 100 / 100"
 
+[node name="StaminaBar" type="ProgressBar" parent="UI/HUD"]
+offset_left = 28.0
+offset_top = 58.0
+offset_right = 330.0
+offset_bottom = 82.0
+value = 100.0
+show_percentage = false
+
+[node name="StaminaLabel" type="Label" parent="UI/HUD"]
+offset_left = 34.0
+offset_top = 59.0
+offset_right = 250.0
+offset_bottom = 81.0
+text = "AGUANTE 100 / 100"
+
+[node name="ComboLabel" type="Label" parent="UI/HUD"]
+offset_left = 28.0
+offset_top = 91.0
+offset_right = 220.0
+offset_bottom = 118.0
+text = "COMBO x0"
+
 [node name="StatusLabel" type="Label" parent="UI/HUD"]
 offset_left = 28.0
-offset_top = 64.0
-offset_right = 420.0
-offset_bottom = 94.0
-text = "FASE 0.2 — Prototipo de combate"
+offset_top = 122.0
+offset_right = 490.0
+offset_bottom = 152.0
+text = "FASE 0.3 — Combate base"
 
 [node name="Hint" type="Label" parent="UI/HUD"]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -410.0
+offset_left = -510.0
 offset_top = 24.0
 offset_right = -28.0
 offset_bottom = 88.0
 grow_horizontal = 0
-text = "PC: A/D mover · Espacio saltar · J atacar"
+text = "PC: A/D mover · Espacio saltar · J combo · K esquivar"
 horizontal_alignment = 2
 
 [node name="VirtualControls" type="CanvasLayer" parent="."]
@@ -175,13 +231,27 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -236.0
+offset_left = -330.0
 offset_top = -126.0
-offset_right = -146.0
+offset_right = -240.0
 offset_bottom = -36.0
 grow_horizontal = 0
 grow_vertical = 0
 text = "SALTO"
+
+[node name="Dodge" type="Button" parent="VirtualControls/Root"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -230.0
+offset_top = -126.0
+offset_right = -140.0
+offset_bottom = -36.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "ESQ"
 
 [node name="Attack" type="Button" parent="VirtualControls/Root"]
 anchors_preset = 3
