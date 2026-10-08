@@ -14,15 +14,18 @@ extends Node2D
 @onready var traveler = $TravelerEvent
 @onready var narrative_controller: NarrativeEventController = $NarrativeEventController
 @onready var narrative_panel = $UI/NarrativePanel
+@onready var inventory_panel = $UI/InventoryPanel
 @onready var virtual_controls = $VirtualControls
 
 var _active_event_id: StringName = &""
+var _nearby_pickup: ItemPickup = null
 
 func _ready() -> void:
 	player.health_changed.connect(_on_player_health_changed)
 	player.stamina_changed.connect(_on_player_stamina_changed)
 	player.combo_changed.connect(_on_combo_changed)
 	player.weapon_changed.connect(_on_weapon_changed)
+	player.inventory_changed.connect(_on_inventory_changed)
 	player.died.connect(_on_player_died)
 	enemy.died.connect(_on_enemy_died)
 
@@ -31,14 +34,31 @@ func _ready() -> void:
 	narrative_panel.choice_selected.connect(_on_choice_selected)
 	narrative_panel.dismissed.connect(_on_narrative_dismissed)
 
+	inventory_panel.equip_requested.connect(_on_inventory_equip_requested)
+	inventory_panel.closed.connect(_on_inventory_closed)
+
+	for pickup in get_tree().get_nodes_in_group("item_pickup"):
+		pickup.picked_up.connect(_on_item_picked_up)
+
 	_on_player_health_changed(player.health, player.max_health)
 	_on_player_stamina_changed(player.stamina, player.max_stamina)
 	_on_weapon_changed("Espada")
 	_refresh_flags()
 
 func _process(_delta: float) -> void:
-	if narrative_panel.visible:
+	if narrative_panel.visible or inventory_panel.visible:
 		prompt_label.text = ""
+		return
+
+	if Input.is_action_just_pressed("inventory"):
+		_open_inventory()
+		return
+
+	_nearby_pickup = _find_nearby_pickup()
+	if _nearby_pickup != null:
+		prompt_label.text = "E / USAR — Recoger " + _nearby_pickup.display_name
+		if Input.is_action_just_pressed("interact"):
+			_nearby_pickup.pick_up()
 		return
 
 	var distance := player.global_position.distance_to(traveler.global_position)
@@ -49,6 +69,44 @@ func _process(_delta: float) -> void:
 			narrative_controller.start_event(traveler.event_id)
 	else:
 		prompt_label.text = ""
+
+func _find_nearby_pickup() -> ItemPickup:
+	var nearest: ItemPickup = null
+	var best_distance := 110.0
+	for pickup in get_tree().get_nodes_in_group("item_pickup"):
+		if not is_instance_valid(pickup):
+			continue
+		var distance := player.global_position.distance_to(pickup.global_position)
+		if distance <= best_distance:
+			best_distance = distance
+			nearest = pickup
+	return nearest
+
+func _open_inventory() -> void:
+	player.can_control = false
+	player.velocity = Vector2.ZERO
+	virtual_controls.visible = false
+	inventory_panel.open_inventory(player.inventory)
+	status_label.text = "Inventario abierto"
+
+func _on_inventory_equip_requested(item_id: StringName) -> void:
+	if player.equip_weapon(item_id):
+		inventory_panel.open_inventory(player.inventory)
+		status_label.text = "Arma equipada"
+
+func _on_inventory_closed() -> void:
+	player.can_control = true
+	virtual_controls.visible = true
+	status_label.text = "FASE 0.6 — Inventario y equipamiento"
+
+func _on_item_picked_up(item_id: StringName, amount: int) -> void:
+	player.add_item(item_id, amount)
+	status_label.text = "Objeto recogido"
+	_on_inventory_changed()
+
+func _on_inventory_changed() -> void:
+	if inventory_panel.visible:
+		inventory_panel.open_inventory(player.inventory)
 
 func _on_player_health_changed(current: int, maximum: int) -> void:
 	health_bar.max_value = maximum
@@ -67,7 +125,7 @@ func _on_weapon_changed(display_name: String) -> void:
 	weapon_label.text = "ARMA: " + display_name
 
 func _on_player_died() -> void:
-	status_label.text = "Has caído — prototipo 0.5"
+	status_label.text = "Has caído — prototipo 0.6"
 
 func _on_enemy_died() -> void:
 	status_label.text = "Enemigo derrotado"
