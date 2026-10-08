@@ -5,6 +5,7 @@ signal stamina_changed(current: float, maximum: float)
 signal combo_changed(step: int)
 signal weapon_changed(display_name: String)
 signal inventory_changed
+signal progression_changed
 signal died
 
 enum WeaponMode { SWORD, BOW, STAFF, DAGGERS }
@@ -29,6 +30,7 @@ var facing := 1.0
 var can_control := true
 var weapon_mode := WeaponMode.SWORD
 var inventory := Inventory.new()
+var progression := Progression.new()
 
 var _combo_step := 0
 var _last_attack_time := -99.0
@@ -52,6 +54,10 @@ func _ready() -> void:
 	stamina_changed.emit(stamina, max_stamina)
 	inventory.add_item(&"rusted_sword")
 	inventory.equipped_weapon_changed.connect(_on_equipped_weapon_changed)
+	progression.experience_changed.connect(func(_current: int, _required: int) -> void: progression_changed.emit())
+	progression.level_changed.connect(func(_level: int, _points: int) -> void: progression_changed.emit())
+	progression.skill_points_changed.connect(func(_points: int) -> void: progression_changed.emit())
+	progression.skill_unlocked.connect(_on_skill_unlocked)
 	weapon_changed.emit(_weapon_name())
 
 func _physics_process(delta: float) -> void:
@@ -145,7 +151,8 @@ func _regen_stamina(delta: float, now: float) -> void:
 	if now < _dodge_until:
 		return
 	var previous := stamina
-	stamina = minf(max_stamina, stamina + stamina_regen_per_second * delta)
+	var regen := stamina_regen_per_second + (8.0 if progression.has_skill(&"survival_breath") else 0.0)
+	stamina = minf(max_stamina, stamina + regen * delta)
 	if not is_equal_approx(previous, stamina):
 		stamina_changed.emit(stamina, max_stamina)
 
@@ -157,7 +164,8 @@ func _spend_stamina(amount: float) -> bool:
 	return true
 
 func _try_dodge(direction: float, now: float) -> void:
-	if now < _attack_locked_until or not _spend_stamina(dodge_cost):
+	var actual_dodge_cost := dodge_cost - (8.0 if progression.has_skill(&"cunning_step") else 0.0)
+	if now < _attack_locked_until or not _spend_stamina(actual_dodge_cost):
 		return
 
 	var dodge_direction := direction
@@ -168,8 +176,9 @@ func _try_dodge(direction: float, now: float) -> void:
 
 	velocity.x = dodge_direction * dodge_speed
 	velocity.y = 0.0
-	_dodge_until = now + dodge_duration
-	_invulnerable_until = now + dodge_invulnerability
+	var duration_bonus := 0.05 if progression.has_skill(&"cunning_step") else 0.0
+	_dodge_until = now + dodge_duration + duration_bonus
+	_invulnerable_until = now + dodge_invulnerability + duration_bonus
 
 	var tween := create_tween()
 	tween.tween_property(visual, "scale", Vector2(1.28, 0.72), 0.07)
@@ -196,11 +205,14 @@ func _attack_sword(now: float) -> void:
 	_last_attack_time = now
 	combo_changed.emit(_combo_step)
 
-	var damage_values := [18, 22, 34]
+	var finisher_damage := 46 if progression.has_skill(&"sword_riposte") else 34
+	var damage_values := [18, 22, finisher_damage]
 	var lock_values := [0.24, 0.28, 0.40]
 	var reach_values := [58.0, 64.0, 72.0]
 	hitbox.damage = damage_values[_combo_step - 1]
 	hitbox.knockback = 180.0 + (_combo_step * 35.0)
+	if _combo_step == 3 and progression.has_skill(&"sword_riposte"):
+		hitbox.knockback += 80.0
 	hitbox.position.x = reach_values[_combo_step - 1] * facing
 	_attack_locked_until = now + lock_values[_combo_step - 1]
 	hitbox.strike(global_position)
@@ -212,7 +224,8 @@ func _attack_sword(now: float) -> void:
 	tween.tween_property(visual, "rotation", 0.0, lock_values[_combo_step - 1] - 0.07)
 
 func _attack_daggers(now: float) -> void:
-	if not _spend_stamina(8.0):
+	var dagger_cost := 5.0 if progression.has_skill(&"daggers_flurry") else 8.0
+	if not _spend_stamina(dagger_cost):
 		return
 	if now - _last_attack_time <= 0.38:
 		_combo_step = (_combo_step % 4) + 1
@@ -224,7 +237,7 @@ func _attack_daggers(now: float) -> void:
 	hitbox.damage = 9 + (_combo_step * 2)
 	hitbox.knockback = 90.0
 	hitbox.position.x = 46.0 * facing
-	_attack_locked_until = now + 0.14
+	_attack_locked_until = now + (0.10 if progression.has_skill(&"daggers_flurry") else 0.14)
 	hitbox.strike(global_position)
 	velocity.x += facing * 35.0
 
@@ -239,7 +252,9 @@ func _attack_bow(now: float) -> void:
 	combo_changed.emit(0)
 	_last_attack_time = now
 	_attack_locked_until = now + 0.48
-	_spawn_projectile(arrow_scene, 20, 650.0, 130.0)
+	var arrow_damage := 28 if progression.has_skill(&"bow_piercing") else 20
+	var arrow_speed := 780.0 if progression.has_skill(&"bow_piercing") else 650.0
+	_spawn_projectile(arrow_scene, arrow_damage, arrow_speed, 160.0 if progression.has_skill(&"bow_piercing") else 130.0)
 
 	var tween := create_tween()
 	tween.tween_property(visual, "scale", Vector2(0.96,1.04), 0.10)
@@ -252,7 +267,9 @@ func _attack_staff(now: float) -> void:
 	combo_changed.emit(0)
 	_last_attack_time = now
 	_attack_locked_until = now + 0.62
-	_spawn_projectile(arcane_scene, 28, 430.0, 230.0)
+	var spell_damage := 40 if progression.has_skill(&"staff_overcharge") else 28
+	var spell_knockback := 320.0 if progression.has_skill(&"staff_overcharge") else 230.0
+	_spawn_projectile(arcane_scene, spell_damage, 430.0, spell_knockback)
 
 	var tween := create_tween()
 	tween.tween_property(visual, "rotation", -0.14 * facing, 0.15)
@@ -315,3 +332,21 @@ func heal(amount: int) -> void:
 		return
 	health = mini(max_health, health + amount)
 	health_changed.emit(health, max_health)
+
+
+func add_experience(amount: int) -> void:
+	progression.add_experience(amount)
+	progression_changed.emit()
+
+func unlock_skill(skill_id: StringName) -> bool:
+	var unlocked := progression.unlock(skill_id)
+	if unlocked:
+		progression_changed.emit()
+	return unlocked
+
+func _on_skill_unlocked(skill_id: StringName) -> void:
+	if skill_id == &"survival_breath":
+		max_stamina += 20.0
+		stamina = minf(max_stamina, stamina + 20.0)
+		stamina_changed.emit(stamina, max_stamina)
+	progression_changed.emit()
