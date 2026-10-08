@@ -291,3 +291,10 @@ func die() -> void:
 	var tween := create_tween()
 	tween.tween_property(visual, "rotation", 1.45 * facing, 0.35)
 	tween.parallel().tween_property(visual, "modulate:a", 0.35, 0.35)
+
+
+func heal(amount: int) -> void:
+	if health <= 0:
+		return
+	health = mini(max_health, health + amount)
+	health_changed.emit(health, max_health)
