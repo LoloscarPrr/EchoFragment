@@ -17,7 +17,7 @@
 size = Vector2(44, 84)
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
-size = Vector2(2200, 80)
+size = Vector2(4200, 80)
 
 [sub_resource type="RectangleShape2D" id="AttackShape"]
 size = Vector2(86, 66)
@@ -28,11 +28,14 @@ size = Vector2(48, 74)
 [sub_resource type="RectangleShape2D" id="InteractShape"]
 size = Vector2(72, 86)
 
+[sub_resource type="RectangleShape2D" id="GateShape"]
+size = Vector2(90, 180)
+
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
 
 [node name="Backdrop" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(-500, -200, 2300, -200, 2300, 720, -500, 720)
+polygon = PackedVector2Array(-500, -200, 4200, -200, 4200, 720, -500, 720)
 color = Color(0.07, 0.09, 0.13, 1)
 
 [node name="FarRuins" type="Polygon2D" parent="."]
@@ -44,12 +47,12 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="GroundVisual" type="Polygon2D" parent="Ground"]
-polygon = PackedVector2Array(-460, 0, 1760, 0, 1760, 90, -460, 90)
-position = Vector2(640, 640)
+polygon = PackedVector2Array(-300, 0, 3900, 0, 3900, 90, -300, 90)
+position = Vector2(1800, 640)
 color = Color(0.16, 0.19, 0.18, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
-position = Vector2(640, 680)
+position = Vector2(1800, 680)
 shape = SubResource("GroundShape")
 
 [node name="Player" type="CharacterBody2D" parent="." groups=["player"]]
@@ -99,13 +102,13 @@ position_smoothing_enabled = true
 position_smoothing_speed = 6.0
 limit_left = 0
 limit_top = 0
-limit_right = 2200
+limit_right = 4000
 limit_bottom = 720
 
 [node name="NarrativeEventController" type="Node" parent="."]
 script = ExtResource("7_narrative")
 
-[node name="TravelerEvent" type="Area2D" parent="."]
+[node name="TravelerEvent" type="Area2D" parent="." groups=["narrative_event"]]
 position = Vector2(540, 574)
 collision_layer = 8
 collision_mask = 0
@@ -126,6 +129,56 @@ color = Color(0.9, 0.73, 0.28, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="TravelerEvent"]
 shape = SubResource("InteractShape")
+
+[node name="OldShrineEvent" type="Area2D" parent="." groups=["narrative_event"]]
+position = Vector2(1450, 566)
+collision_layer = 8
+collision_mask = 0
+monitoring = true
+monitorable = true
+script = ExtResource("8_interactable")
+event_id = &"old_shrine"
+prompt_text = "Examinar santuario"
+
+[node name="Stone" type="Polygon2D" parent="OldShrineEvent"]
+polygon = PackedVector2Array(-34, 28, -24, -26, 0, -42, 24, -26, 34, 28)
+color = Color(0.36, 0.39, 0.43, 1)
+
+[node name="Rune" type="Polygon2D" parent="OldShrineEvent"]
+polygon = PackedVector2Array(-4, -18, 4, -18, 4, 12, -4, 12, -14, 2, -10, -4, 0, 4, 10, -4, 14, 2)
+color = Color(0.46, 0.62, 0.82, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="OldShrineEvent"]
+shape = SubResource("InteractShape")
+
+[node name="PassageEvent" type="Area2D" parent="." groups=["narrative_event"]]
+position = Vector2(2140, 560)
+collision_layer = 8
+collision_mask = 0
+monitoring = true
+monitorable = true
+script = ExtResource("8_interactable")
+event_id = &"collapsed_passage"
+prompt_text = "Examinar paso derrumbado"
+
+[node name="Marker" type="Polygon2D" parent="PassageEvent"]
+polygon = PackedVector2Array(-28, 28, -24, -16, 0, -34, 24, -16, 28, 28)
+color = Color(0.42, 0.36, 0.30, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PassageEvent"]
+shape = SubResource("InteractShape")
+
+[node name="PassageBarrier" type="StaticBody2D" parent="."]
+position = Vector2(2250, 550)
+collision_layer = 1
+collision_mask = 2
+
+[node name="Rubble" type="Polygon2D" parent="PassageBarrier"]
+polygon = PackedVector2Array(-50, 90, -42, 8, -18, -44, 12, -76, 42, -26, 48, 90)
+color = Color(0.29, 0.28, 0.27, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PassageBarrier"]
+shape = SubResource("GateShape")
 
 [node name="BowPickup" type="Area2D" parent="." groups=["item_pickup"]]
 position = Vector2(1040, 590)
@@ -157,13 +210,13 @@ display_name = "Dagas sombrías"
 polygon = PackedVector2Array(-22, -12, 18, -8, 18, -3, -22, 0, -22, 4, 18, 7, 18, 12, -22, 8)
 color = Color(0.82, 0.82, 0.86, 1)
 
-[node name="Enemy" type="CharacterBody2D" parent="."]
-position = Vector2(850, 565)
+[node name="Ambusher" type="CharacterBody2D" parent="." groups=["enemy"]]
+position = Vector2(900, 565)
 collision_layer = 4
 collision_mask = 3
 script = ExtResource("3_enemy")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemy"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ambusher"]
 shape = SubResource("EnemyShape")
 
 [node name="Visual" type="Polygon2D" parent="Enemy"]
@@ -177,7 +230,7 @@ monitoring = false
 monitorable = true
 script = ExtResource("6_hurtbox")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemy/Hurtbox"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ambusher/Hurtbox"]
 shape = SubResource("EnemyShape")
 
 [node name="AttackHitbox" type="Area2D" parent="Enemy"]
@@ -188,8 +241,84 @@ monitoring = true
 monitorable = false
 script = ExtResource("5_hitbox")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Enemy/AttackHitbox"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ambusher/AttackHitbox"]
 shape = SubResource("AttackShape")
+
+
+[node name="RoadRaider" type="CharacterBody2D" parent="." groups=["enemy"]]
+position = Vector2(1850, 565)
+collision_layer = 4
+collision_mask = 3
+script = ExtResource("3_enemy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RoadRaider"]
+shape = SubResource("EnemyShape")
+
+[node name="Visual" type="Polygon2D" parent="RoadRaider"]
+polygon = PackedVector2Array(-23, -37, 23, -37, 28, 37, -28, 37)
+color = Color(0.52, 0.16, 0.18, 1)
+
+[node name="Hurtbox" type="Area2D" parent="RoadRaider"]
+collision_layer = 32
+collision_mask = 0
+monitoring = false
+monitorable = true
+script = ExtResource("6_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RoadRaider/Hurtbox"]
+shape = SubResource("EnemyShape")
+
+[node name="AttackHitbox" type="Area2D" parent="RoadRaider"]
+position = Vector2(-58, 0)
+collision_layer = 0
+collision_mask = 16
+monitoring = true
+monitorable = false
+script = ExtResource("5_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RoadRaider/AttackHitbox"]
+shape = SubResource("AttackShape")
+
+[node name="GateWatcher" type="CharacterBody2D" parent="." groups=["enemy"]]
+position = Vector2(2850, 565)
+collision_layer = 4
+collision_mask = 3
+script = ExtResource("3_enemy")
+max_health = 96
+move_speed = 112.0
+attack_damage = 16
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="GateWatcher"]
+shape = SubResource("EnemyShape")
+
+[node name="Visual" type="Polygon2D" parent="GateWatcher"]
+polygon = PackedVector2Array(-25, -41, 25, -41, 30, 41, -30, 41)
+color = Color(0.34, 0.18, 0.22, 1)
+
+[node name="Hurtbox" type="Area2D" parent="GateWatcher"]
+collision_layer = 32
+collision_mask = 0
+monitoring = false
+monitorable = true
+script = ExtResource("6_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="GateWatcher/Hurtbox"]
+shape = SubResource("EnemyShape")
+
+[node name="AttackHitbox" type="Area2D" parent="GateWatcher"]
+position = Vector2(-58, 0)
+collision_layer = 0
+collision_mask = 16
+monitoring = true
+monitorable = false
+script = ExtResource("5_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="GateWatcher/AttackHitbox"]
+shape = SubResource("AttackShape")
+
+[node name="ValleGrisSign" type="Label" parent="."]
+position = Vector2(3220, 470)
+text = "VALLE GRIS →"
 
 [node name="UI" type="CanvasLayer" parent="."]
 
@@ -251,7 +380,7 @@ offset_left = 28.0
 offset_top = 122.0
 offset_right = 490.0
 offset_bottom = 152.0
-text = "FASE 0.7 — Progresión y habilidades"
+text = "FASE 0.8 — Camino de Valle Gris"
 
 [node name="LevelLabel" type="Label" parent="UI/HUD"]
 offset_left = 28.0
