@@ -135,16 +135,16 @@ func _apply_weapon_visual() -> void:
 	var weapon_visual := $Visual/Weapon as Polygon2D
 	match weapon_mode:
 		WeaponMode.SWORD:
-			weapon_visual.polygon = PackedVector2Array(18,-7,74,-3,74,3,18,7)
+			weapon_visual.polygon = PackedVector2Array([Vector2(18, -7), Vector2(74, -3), Vector2(74, 3), Vector2(18, 7)])
 			weapon_visual.color = Color(0.72,0.77,0.82,1)
 		WeaponMode.BOW:
-			weapon_visual.polygon = PackedVector2Array(20,-26,28,-20,32,0,28,20,20,26,24,0)
+			weapon_visual.polygon = PackedVector2Array([Vector2(20, -26), Vector2(28, -20), Vector2(32, 0), Vector2(28, 20), Vector2(20, 26), Vector2(24, 0)])
 			weapon_visual.color = Color(0.55,0.34,0.18,1)
 		WeaponMode.STAFF:
-			weapon_visual.polygon = PackedVector2Array(21,-34,27,-34,27,34,21,34)
+			weapon_visual.polygon = PackedVector2Array([Vector2(21, -34), Vector2(27, -34), Vector2(27, 34), Vector2(21, 34)])
 			weapon_visual.color = Color(0.45,0.58,0.96,1)
 		WeaponMode.DAGGERS:
-			weapon_visual.polygon = PackedVector2Array(18,-16,48,-12,48,-6,18,-4,18,4,48,6,48,12,18,16)
+			weapon_visual.polygon = PackedVector2Array([Vector2(18, -16), Vector2(48, -12), Vector2(48, -6), Vector2(18, -4), Vector2(18, 4), Vector2(48, 6), Vector2(48, 12), Vector2(18, 16)])
 			weapon_visual.color = Color(0.82,0.82,0.86,1)
 
 func _regen_stamina(delta: float, now: float) -> void:
@@ -305,7 +305,7 @@ func take_damage(amount: int, source_position := Vector2.ZERO, knockback := 220.
 	health_changed.emit(health, max_health)
 
 	if source_position != Vector2.ZERO:
-		var knock_dir := sign(global_position.x - source_position.x)
+		var knock_dir: float = signf(global_position.x - source_position.x)
 		if knock_dir == 0.0:
 			knock_dir = -facing
 		velocity.x = knock_dir * knockback
@@ -339,7 +339,7 @@ func add_experience(amount: int) -> void:
 	progression_changed.emit()
 
 func unlock_skill(skill_id: StringName) -> bool:
-	var unlocked := progression.unlock(skill_id)
+	var unlocked: bool = progression.unlock(skill_id)
 	if unlocked:
 		progression_changed.emit()
 	return unlocked
