@@ -6,6 +6,7 @@ extends Node2D
 @onready var stamina_bar: ProgressBar = $UI/HUD/StaminaBar
 @onready var stamina_label: Label = $UI/HUD/StaminaLabel
 @onready var combo_label: Label = $UI/HUD/ComboLabel
+@onready var weapon_label: Label = $UI/HUD/WeaponLabel
 @onready var status_label: Label = $UI/HUD/StatusLabel
 @onready var enemy = $Enemy
 
@@ -13,10 +14,12 @@ func _ready() -> void:
 	player.health_changed.connect(_on_player_health_changed)
 	player.stamina_changed.connect(_on_player_stamina_changed)
 	player.combo_changed.connect(_on_combo_changed)
+	player.weapon_changed.connect(_on_weapon_changed)
 	player.died.connect(_on_player_died)
 	enemy.died.connect(_on_enemy_died)
 	_on_player_health_changed(player.health, player.max_health)
 	_on_player_stamina_changed(player.stamina, player.max_stamina)
+	_on_weapon_changed("Espada")
 
 func _on_player_health_changed(current: int, maximum: int) -> void:
 	health_bar.max_value = maximum
@@ -29,10 +32,13 @@ func _on_player_stamina_changed(current: float, maximum: float) -> void:
 	stamina_label.text = "AGUANTE %d / %d" % [roundi(current), roundi(maximum)]
 
 func _on_combo_changed(step: int) -> void:
-	combo_label.text = "COMBO x%d" % step
+	combo_label.text = "COMBO x%d" % step if step > 0 else ""
+
+func _on_weapon_changed(display_name: String) -> void:
+	weapon_label.text = "ARMA: " + display_name
 
 func _on_player_died() -> void:
-	status_label.text = "Has caído — prototipo 0.3"
+	status_label.text = "Has caído — prototipo 0.4"
 
 func _on_enemy_died() -> void:
-	status_label.text = "Enemigo derrotado · combo y esquiva activos"
+	status_label.text = "Enemigo derrotado · prueba otra arma"
