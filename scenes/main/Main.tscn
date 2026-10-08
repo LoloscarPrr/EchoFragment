@@ -56,8 +56,8 @@ shape = SubResource("PlayerShape")
 polygon = PackedVector2Array(-18, -42, 18, -42, 25, 42, -25, 42)
 color = Color(0.76, 0.78, 0.83, 1)
 
-[node name="Sword" type="Polygon2D" parent="Player/Visual"]
-polygon = PackedVector2Array(18, -8, 74, -3, 74, 3, 18, 8)
+[node name="Weapon" type="Polygon2D" parent="Player/Visual"]
+polygon = PackedVector2Array(18, -7, 74, -3, 74, 3, 18, 7)
 color = Color(0.72, 0.77, 0.82, 1)
 
 [node name="Hurtbox" type="Area2D" parent="Player"]
@@ -69,6 +69,9 @@ script = ExtResource("6_hurtbox")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player/Hurtbox"]
 shape = SubResource("PlayerShape")
+
+[node name="ProjectileOrigin" type="Marker2D" parent="Player"]
+position = Vector2(30, -8)
 
 [node name="AttackHitbox" type="Area2D" parent="Player"]
 position = Vector2(58, 0)
@@ -172,12 +175,19 @@ offset_right = 220.0
 offset_bottom = 118.0
 text = "COMBO x0"
 
+[node name="WeaponLabel" type="Label" parent="UI/HUD"]
+offset_left = 220.0
+offset_top = 91.0
+offset_right = 420.0
+offset_bottom = 118.0
+text = "ARMA: Espada"
+
 [node name="StatusLabel" type="Label" parent="UI/HUD"]
 offset_left = 28.0
 offset_top = 122.0
 offset_right = 490.0
 offset_bottom = 152.0
-text = "FASE 0.3 — Combate base"
+text = "FASE 0.4 — Estilos de combate"
 
 [node name="Hint" type="Label" parent="UI/HUD"]
 anchors_preset = 1
@@ -188,7 +198,7 @@ offset_top = 24.0
 offset_right = -28.0
 offset_bottom = 88.0
 grow_horizontal = 0
-text = "PC: A/D mover · Espacio saltar · J combo · K esquivar"
+text = "PC: A/D mover · Espacio saltar · J atacar · K esquivar · Q cambiar arma"
 horizontal_alignment = 2
 
 [node name="VirtualControls" type="CanvasLayer" parent="."]
@@ -252,6 +262,20 @@ offset_bottom = -36.0
 grow_horizontal = 0
 grow_vertical = 0
 text = "ESQ"
+
+[node name="Weapon" type="Button" parent="VirtualControls/Root"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -430.0
+offset_top = -126.0
+offset_right = -340.0
+offset_bottom = -36.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "ARMA"
 
 [node name="Attack" type="Button" parent="VirtualControls/Root"]
 anchors_preset = 3
