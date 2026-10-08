@@ -22,7 +22,7 @@ extends Node2D
 @onready var boss_event: NarrativeInteractable = $FragmentedKnightChoice
 @onready var boss_bar: ProgressBar = $UI/HUD/BossBar
 @onready var boss_label: Label = $UI/HUD/BossLabel
-@onready var chronicle_panel = $UI/ChroniclePanel
+var chronicle_panel: ChroniclePanel
 
 var _active_event_id: StringName = &""
 var _nearby_pickup: ItemPickup = null
@@ -61,7 +61,11 @@ func _ready() -> void:
 	boss.died.connect(_on_boss_died)
 	boss_bar.visible = false
 	boss_label.visible = false
+	chronicle_panel = ChroniclePanel.new()
+	$UI.add_child(chronicle_panel)
 	chronicle_panel.restarted.connect(_restart_adventure)
+	status_label.text = "FASE 0.10 — Vertical Slice"
+	$ValleGrisSign.position.x = 3860.0
 	if not narrative_controller.world_state.discovered_locations.has(&"camino_valle_gris"):
 		narrative_controller.world_state.discovered_locations.append(&"camino_valle_gris")
 
