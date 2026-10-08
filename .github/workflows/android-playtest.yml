@@ -20,18 +20,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Install Android SDK packages
         run: |
-          yes | sdkmanager --licenses >/dev/null
-          sdkmanager "platform-tools" "build-tools;34.0.0" "platforms;android-34" "cmdline-tools;latest"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"             "platform-tools"             "build-tools;34.0.0"             "platforms;android-34"
 
       - name: Install Godot 4.3
         run: |
@@ -69,15 +66,7 @@ jobs:
         run: |
           mkdir -p "$HOME/.echofragment-signing"
           if [ ! -f "$HOME/.echofragment-signing/playtest.keystore" ]; then
-            keytool -genkeypair -v \
-              -keystore "$HOME/.echofragment-signing/playtest.keystore" \
-              -storepass echofragmentplaytest \
-              -keypass echofragmentplaytest \
-              -alias echofragment \
-              -keyalg RSA \
-              -keysize 2048 \
-              -validity 3650 \
-              -dname "CN=EchoFragment Playtest, OU=Internal, O=EchoFragment, C=CL"
+            keytool -genkeypair -v               -keystore "$HOME/.echofragment-signing/playtest.keystore"               -storepass echofragmentplaytest               -keypass echofragmentplaytest               -alias echofragment               -keyalg RSA               -keysize 2048               -validity 3650               -dname "CN=EchoFragment Playtest, OU=Internal, O=EchoFragment, C=CL"
           fi
 
       - name: Import project
