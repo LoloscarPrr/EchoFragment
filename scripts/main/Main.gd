@@ -117,7 +117,7 @@ func _find_nearby_pickup() -> ItemPickup:
 	for pickup in get_tree().get_nodes_in_group("item_pickup"):
 		if not is_instance_valid(pickup):
 			continue
-		var distance := player.global_position.distance_to(pickup.global_position)
+		var distance: float = player.global_position.distance_to(pickup.global_position)
 		if distance <= best_distance:
 			best_distance = distance
 			nearest = pickup
@@ -131,7 +131,7 @@ func _find_nearby_event() -> NarrativeInteractable:
 			continue
 		if not narrative_controller.can_start(event_node.event_id):
 			continue
-		var distance := player.global_position.distance_to(event_node.global_position)
+		var distance: float = player.global_position.distance_to(event_node.global_position)
 		if distance <= best_distance:
 			best_distance = distance
 			nearest = event_node
@@ -170,7 +170,7 @@ func _on_skill_unlock_requested(skill_id: StringName) -> void:
 func _on_skills_closed() -> void:
 	player.can_control = true
 	virtual_controls.visible = true
-	status_label.text = "FASE 0.8 — Camino de Valle Gris"
+	status_label.text = "FASE 0.10 — Vertical Slice"
 
 func _on_item_picked_up(item_id: StringName, amount: int) -> void:
 	player.add_item(item_id, amount)
@@ -198,8 +198,8 @@ func _on_weapon_changed(display_name: String) -> void:
 	weapon_label.text = "ARMA: " + display_name
 
 func _refresh_progression() -> void:
-	var progression := player.progression
-	var required := progression.xp_required_for_level(progression.level)
+	var progression: Progression = player.progression
+	var required: int = progression.xp_required_for_level(progression.level)
 	level_label.text = "NIVEL %d · PUNTOS %d" % [progression.level, progression.skill_points]
 	xp_bar.max_value = required
 	xp_bar.value = progression.experience
