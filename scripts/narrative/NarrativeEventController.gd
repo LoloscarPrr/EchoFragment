@@ -19,6 +19,7 @@ func _register_prototype_events() -> void:
 	_register_traveler()
 	_register_old_shrine()
 	_register_collapsed_passage()
+	_register_fragmented_knight()
 
 func _register_traveler() -> void:
 	var event := NarrativeEvent.new()
@@ -163,4 +164,37 @@ func _result_text(choice_id: StringName) -> String:
 			return "Las huellas te conducen por un sendero lateral que evita el derrumbe."
 		&"turn_back":
 			return "Decides no arriesgarte todavía."
+		&"knight_finish":
+			return "El acero termina lo que la corrupción comenzó. El caballero muere como guardián de Valle Gris."
+		&"knight_cleanse":
+			return "Repites las runas del santuario. Las grietas oscuras se apagan una a una y el caballero recupera su rostro."
+		&"knight_letter":
+			return "Al ver el sello de la carta, el caballero recuerda un juramento olvidado. Baja su arma y te entrega el paso."
 	return "La decisión queda registrada."
+
+
+func _register_fragmented_knight() -> void:
+	var event := NarrativeEvent.new()
+	event.id = &"fragmented_knight_choice"
+	event.title = "El Caballero Fragmentado"
+	event.body = "El caballero cae de rodillas. Bajo la armadura rota todavía queda alguien luchando contra la corrupción."
+
+	var finish := EventChoice.new()
+	finish.id = &"knight_finish"
+	finish.text = "Acabar con su sufrimiento"
+	finish.grants_flag = &"fragmented_knight_slain"
+
+	var cleanse := EventChoice.new()
+	cleanse.id = &"knight_cleanse"
+	cleanse.text = "[Runas comprendidas] Romper el sello de la corrupción"
+	cleanse.required_flag = &"shrine_understood"
+	cleanse.grants_flag = &"fragmented_knight_released"
+
+	var letter := EventChoice.new()
+	letter.id = &"knight_letter"
+	letter.text = "[Carta sellada] Mostrarle la carta del viajero"
+	letter.required_flag = &"letter_taken"
+	letter.grants_flag = &"fragmented_knight_remembers"
+
+	event.choices = [finish, cleanse, letter]
+	_events[event.id] = event
