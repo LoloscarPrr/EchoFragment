@@ -10,6 +10,7 @@ func _ready() -> void:
 	_bind_button($Root/Dodge, "dodge")
 	_bind_tap($Root/Interact, "interact")
 	_bind_tap($Root/Inventory, "inventory")
+	_bind_tap($Root/Skills, "skills")
 
 func _exit_tree() -> void:
 	for action in _pressed_actions.keys():
