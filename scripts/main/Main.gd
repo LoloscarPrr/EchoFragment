@@ -1,6 +1,7 @@
 extends Node2D
 
 @onready var player = $Player
+@onready var hud: Control = $UI/HUD
 @onready var health_bar: ProgressBar = $UI/HUD/HealthBar
 @onready var health_label: Label = $UI/HUD/HealthLabel
 @onready var stamina_bar: ProgressBar = $UI/HUD/StaminaBar
@@ -136,6 +137,7 @@ func _find_nearby_event() -> NarrativeInteractable:
 	return nearest
 
 func _open_inventory() -> void:
+	hud.visible = false
 	player.can_control = false
 	player.velocity = Vector2.ZERO
 	virtual_controls.visible = false
@@ -143,6 +145,7 @@ func _open_inventory() -> void:
 	status_label.text = "Inventario abierto"
 
 func _open_skills() -> void:
+	hud.visible = false
 	player.can_control = false
 	player.velocity = Vector2.ZERO
 	virtual_controls.visible = false
@@ -155,6 +158,7 @@ func _on_inventory_equip_requested(item_id: StringName) -> void:
 		status_label.text = "Arma equipada"
 
 func _on_inventory_closed() -> void:
+	hud.visible = true
 	player.can_control = true
 	virtual_controls.visible = true
 	status_label.text = ""
@@ -166,6 +170,7 @@ func _on_skill_unlock_requested(skill_id: StringName) -> void:
 		_refresh_progression()
 
 func _on_skills_closed() -> void:
+	hud.visible = true
 	player.can_control = true
 	virtual_controls.visible = true
 	status_label.text = ""
@@ -214,6 +219,7 @@ func _on_enemy_died() -> void:
 	_refresh_progression()
 
 func _on_event_started(event_id: StringName, title: String, body: String, choices: Array) -> void:
+	hud.visible = false
 	_active_event_id = event_id
 	player.can_control = false
 	player.velocity = Vector2.ZERO
@@ -286,6 +292,7 @@ func _open_passage() -> void:
 	narrative_controller.world_state.set_flag(&"road_to_valle_gris_open", true)
 
 func _on_narrative_dismissed() -> void:
+	hud.visible = true
 	_active_event_id = &""
 	player.can_control = true
 	virtual_controls.visible = true
@@ -331,6 +338,7 @@ func _finish_vertical_slice() -> void:
 	else:
 		world.set_flag(&"adventurer_fallen", true)
 
+	hud.visible = false
 	chronicle_panel.show_chronicle(world, player)
 
 func _restart_adventure() -> void:
