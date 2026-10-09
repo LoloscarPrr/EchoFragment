@@ -392,8 +392,8 @@ mouse_filter = 2
 [node name="HealthBar" type="ProgressBar" parent="UI/HUD"]
 offset_left = 28.0
 offset_top = 24.0
-offset_right = 330.0
-offset_bottom = 52.0
+offset_right = 300.0
+offset_bottom = 48.0
 value = 100.0
 show_percentage = false
 
@@ -407,8 +407,8 @@ text = "VIDA 100 / 100"
 [node name="StaminaBar" type="ProgressBar" parent="UI/HUD"]
 offset_left = 28.0
 offset_top = 58.0
-offset_right = 330.0
-offset_bottom = 82.0
+offset_right = 300.0
+offset_bottom = 78.0
 value = 100.0
 show_percentage = false
 
@@ -427,31 +427,31 @@ offset_bottom = 118.0
 text = "COMBO x0"
 
 [node name="WeaponLabel" type="Label" parent="UI/HUD"]
-offset_left = 220.0
-offset_top = 91.0
-offset_right = 420.0
-offset_bottom = 118.0
+offset_left = 28.0
+offset_top = 88.0
+offset_right = 250.0
+offset_bottom = 114.0
 text = "ARMA: Espada"
 
 [node name="StatusLabel" type="Label" parent="UI/HUD"]
 offset_left = 28.0
-offset_top = 122.0
-offset_right = 490.0
-offset_bottom = 152.0
-text = "FASE 0.9 — Caballero Fragmentado"
+offset_top = 118.0
+offset_right = 430.0
+offset_bottom = 146.0
+text = ""
 
 [node name="LevelLabel" type="Label" parent="UI/HUD"]
 offset_left = 28.0
-offset_top = 184.0
-offset_right = 330.0
-offset_bottom = 208.0
+offset_top = 150.0
+offset_right = 300.0
+offset_bottom = 174.0
 text = "NIVEL 1 · PUNTOS 0"
 
 [node name="XPBar" type="ProgressBar" parent="UI/HUD"]
 offset_left = 28.0
-offset_top = 210.0
-offset_right = 330.0
-offset_bottom = 230.0
+offset_top = 176.0
+offset_right = 300.0
+offset_bottom = 194.0
 value = 0.0
 show_percentage = false
 
@@ -459,10 +459,10 @@ show_percentage = false
 visible = false
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 390.0
-offset_top = 24.0
-offset_right = -390.0
-offset_bottom = 50.0
+offset_left = 360.0
+offset_top = 20.0
+offset_right = -360.0
+offset_bottom = 46.0
 grow_horizontal = 2
 text = "CABALLERO FRAGMENTADO"
 horizontal_alignment = 1
@@ -471,10 +471,10 @@ horizontal_alignment = 1
 visible = false
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 390.0
-offset_top = 52.0
-offset_right = -390.0
-offset_bottom = 76.0
+offset_left = 360.0
+offset_top = 48.0
+offset_right = -360.0
+offset_bottom = 70.0
 grow_horizontal = 2
 value = 320.0
 max_value = 320.0
@@ -494,25 +494,6 @@ grow_horizontal = 2
 grow_vertical = 0
 text = ""
 horizontal_alignment = 1
-
-[node name="FlagsLabel" type="Label" parent="UI/HUD"]
-offset_left = 28.0
-offset_top = 154.0
-offset_right = 650.0
-offset_bottom = 182.0
-text = "MUNDO: sin decisiones todavía"
-
-[node name="Hint" type="Label" parent="UI/HUD"]
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -510.0
-offset_top = 24.0
-offset_right = -28.0
-offset_bottom = 88.0
-grow_horizontal = 0
-text = "PC: A/D mover · E usar · I inventario · O habilidades · J atacar · K esquivar"
-horizontal_alignment = 2
 
 [node name="NarrativePanel" type="Control" parent="UI"]
 visible = false
