@@ -31,6 +31,8 @@ var can_control := true
 var weapon_mode := WeaponMode.SWORD
 var inventory := Inventory.new()
 var progression := Progression.new()
+var animation_controller := CharacterAnimationController.new()
+var proxy_visual: ProtagonistProxyVisual
 
 var _combo_step := 0
 var _last_attack_time := -99.0
@@ -50,6 +52,9 @@ func _ready() -> void:
 	health = max_health
 	stamina = max_stamina
 	_visual_base_scale = visual.scale
+	proxy_visual = ProtagonistProxyVisual.new()
+	add_child(proxy_visual)
+	visual.visible = false
 	health_changed.emit(health, max_health)
 	stamina_changed.emit(stamina, max_stamina)
 	inventory.add_item(&"rusted_sword")
@@ -61,7 +66,7 @@ func _ready() -> void:
 	weapon_changed.emit(_weapon_name())
 
 func _physics_process(delta: float) -> void:
-	var now := Time.get_ticks_msec() / 1000.0
+	var now: float = Time.get_ticks_msec() / 1000.0
 	_regen_stamina(delta, now)
 
 	if not is_on_floor():
@@ -82,16 +87,26 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
 
-	if can_control and Input.is_action_just_pressed("jump") and is_on_floor():
+	if can_control and Input.is_action_just_pressed("jump"):
+		animation_controller.buffer_action(&"jump")
+
+	if can_control and animation_controller.has_buffered(&"jump") and (is_on_floor() or animation_controller.can_coyote_jump()):
+		animation_controller.consume_buffered(&"jump")
+		animation_controller.start_jump()
 		velocity.y = jump_velocity
 
 	if can_control and Input.is_action_just_pressed("dodge"):
 		_try_dodge(direction, now)
 
 	if can_control and Input.is_action_just_pressed("attack"):
+		animation_controller.buffer_action(&"attack")
+
+	if can_control and animation_controller.has_buffered(&"attack") and now >= _attack_locked_until:
+		animation_controller.consume_buffered(&"attack")
 		_try_attack(now)
 
 	move_and_slide()
+	animation_controller.tick(is_on_floor(), velocity)
 	_update_visual(delta)
 
 func equip_weapon(item_id: StringName) -> bool:
@@ -198,6 +213,8 @@ func _try_attack(now: float) -> void:
 			_attack_daggers(now)
 
 func _attack_sword(now: float) -> void:
+	if _combo_step == 0 or now - _last_attack_time > combo_window:
+		animation_controller.start_light_attack()
 	if now - _last_attack_time <= combo_window:
 		_combo_step = (_combo_step % 3) + 1
 	else:
@@ -282,6 +299,8 @@ func _spawn_projectile(scene: PackedScene, damage: int, speed: float, knockback:
 	projectile.configure(facing, damage, speed, knockback, global_position)
 
 func _update_visual(delta: float) -> void:
+	if is_instance_valid(proxy_visual):
+		proxy_visual.configure(animation_controller.state, animation_controller.state_progress(), facing)
 	if absf(velocity.x) > 15.0 and is_on_floor():
 		var bob := sin(Time.get_ticks_msec() * 0.018) * 2.0
 		visual.position.y = move_toward(visual.position.y, bob, 40.0 * delta)
@@ -311,9 +330,10 @@ func take_damage(amount: int, source_position := Vector2.ZERO, knockback := 220.
 		velocity.x = knock_dir * knockback
 		velocity.y = -120.0
 
+	animation_controller.start_light_hit()
 	var tween := create_tween()
-	tween.tween_property(visual, "modulate:a", 0.2, 0.05)
-	tween.tween_property(visual, "modulate:a", 1.0, 0.10)
+	tween.tween_property(proxy_visual, "modulate:a", 0.25, 0.05)
+	tween.tween_property(proxy_visual, "modulate:a", 1.0, 0.10)
 
 	if health == 0:
 		die()
