@@ -9,7 +9,6 @@ extends Node2D
 @onready var weapon_label: Label = $UI/HUD/WeaponLabel
 @onready var status_label: Label = $UI/HUD/StatusLabel
 @onready var prompt_label: Label = $UI/HUD/PromptLabel
-@onready var flags_label: Label = $UI/HUD/FlagsLabel
 @onready var level_label: Label = $UI/HUD/LevelLabel
 @onready var xp_bar: ProgressBar = $UI/HUD/XPBar
 @onready var narrative_controller: NarrativeEventController = $NarrativeEventController
@@ -64,7 +63,7 @@ func _ready() -> void:
 	chronicle_panel = ChroniclePanel.new()
 	$UI.add_child(chronicle_panel)
 	chronicle_panel.restarted.connect(_restart_adventure)
-	status_label.text = "FASE 0.11 — Character Animation Prototype"
+	status_label.text = ""
 	$ValleGrisSign.position.x = 3860.0
 	if not narrative_controller.world_state.discovered_locations.has(&"camino_valle_gris"):
 		narrative_controller.world_state.discovered_locations.append(&"camino_valle_gris")
@@ -72,7 +71,6 @@ func _ready() -> void:
 	_on_player_health_changed(player.health, player.max_health)
 	_on_player_stamina_changed(player.stamina, player.max_stamina)
 	_on_weapon_changed("Espada")
-	_refresh_flags()
 	_refresh_progression()
 
 func _process(_delta: float) -> void:
@@ -159,7 +157,7 @@ func _on_inventory_equip_requested(item_id: StringName) -> void:
 func _on_inventory_closed() -> void:
 	player.can_control = true
 	virtual_controls.visible = true
-	status_label.text = "FASE 0.11 — Character Animation Prototype"
+	status_label.text = ""
 
 func _on_skill_unlock_requested(skill_id: StringName) -> void:
 	if player.unlock_skill(skill_id):
@@ -170,7 +168,7 @@ func _on_skill_unlock_requested(skill_id: StringName) -> void:
 func _on_skills_closed() -> void:
 	player.can_control = true
 	virtual_controls.visible = true
-	status_label.text = "FASE 0.11 — Character Animation Prototype"
+	status_label.text = ""
 
 func _on_item_picked_up(item_id: StringName, amount: int) -> void:
 	player.add_item(item_id, amount)
@@ -221,7 +219,7 @@ func _on_event_started(event_id: StringName, title: String, body: String, choice
 	player.velocity = Vector2.ZERO
 	virtual_controls.visible = false
 	narrative_panel.show_event(title, body, choices)
-	status_label.text = "Decisión narrativa activa"
+	status_label.text = ""
 
 func _on_choice_selected(choice_id: StringName) -> void:
 	if _active_event_id == &"":
@@ -280,7 +278,6 @@ func _on_event_resolved(event_id: StringName, choice_id: StringName, result_text
 	narrative_panel.show_result(result_text + "
 
 Has obtenido 50 EXP.")
-	_refresh_flags()
 	_refresh_progression()
 
 func _open_passage() -> void:
@@ -292,16 +289,6 @@ func _on_narrative_dismissed() -> void:
 	_active_event_id = &""
 	player.can_control = true
 	virtual_controls.visible = true
-	_refresh_flags()
-
-func _refresh_flags() -> void:
-	var world := narrative_controller.world_state
-	var names: Array[String] = []
-	for key in world.flags.keys():
-		if bool(world.flags[key]):
-			names.append(String(key))
-	flags_label.text = "MUNDO: " + (", ".join(names) if not names.is_empty() else "sin decisiones todavía")
-
 
 func _on_boss_health_changed(current: int, maximum: int) -> void:
 	boss_bar.visible = true
@@ -345,7 +332,6 @@ func _finish_vertical_slice() -> void:
 		world.set_flag(&"adventurer_fallen", true)
 
 	chronicle_panel.show_chronicle(world, player)
-	_refresh_flags()
 
 func _restart_adventure() -> void:
 	get_tree().reload_current_scene()
