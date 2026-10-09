@@ -27,10 +27,12 @@ func _build_ui() -> void:
 	add_child(dim)
 
 	card = PanelContainer.new()
-	card.set_anchors_preset(Control.PRESET_CENTER)
-	card.position = Vector2(-380, -270)
-	card.size = Vector2(760, 540)
+	card.anchor_left = 0.5
+	card.anchor_top = 0.5
+	card.anchor_right = 0.5
+	card.anchor_bottom = 0.5
 	add_child(card)
+	_apply_card_size()
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 28)
@@ -150,9 +152,16 @@ func _weapon_display_name(item_id: StringName) -> String:
 		&"shadow_daggers": return "Dagas sombrías"
 	return "Arma desconocida"
 
+func _apply_card_size() -> void:
+	if not is_instance_valid(card):
+		return
+	var width: float = clampf(size.x - 96.0, 560.0, 760.0)
+	var height: float = clampf(size.y - 88.0, 420.0, 540.0)
+	card.offset_left = -width * 0.5
+	card.offset_right = width * 0.5
+	card.offset_top = -height * 0.5
+	card.offset_bottom = height * 0.5
+
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_RESIZED and is_instance_valid(card):
-		var width: float = minf(760.0, size.x - 90.0)
-		var height: float = minf(540.0, size.y - 70.0)
-		card.size = Vector2(maxf(width, 560.0), maxf(height, 420.0))
-		card.position = -card.size * 0.5
+	if what == NOTIFICATION_RESIZED:
+		_apply_card_size()
