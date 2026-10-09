@@ -22,30 +22,41 @@ func tick(is_grounded: bool, velocity: Vector2) -> void:
 	else:
 		_coyote_ticks_left = maxi(0, _coyote_ticks_left - 1)
 
+	if state == &"attack_light" and state_tick < 18:
+		state_tick += 1
+		_was_grounded = is_grounded
+		return
+	if state == &"hit_light" and state_tick < 14:
+		state_tick += 1
+		_was_grounded = is_grounded
+		return
+
 	if is_grounded and not _was_grounded:
 		_land_ticks_left = 8
 		set_state(&"land_light")
 
 	if _land_ticks_left > 0:
 		_land_ticks_left -= 1
-	elif state != &"attack_light" and state != &"hit_light":
-		if not is_grounded:
-			if velocity.y < -80.0:
-				set_state(&"jump_rise")
-			elif absf(velocity.y) <= 80.0:
-				set_state(&"jump_apex")
-			else:
-				set_state(&"jump_fall")
-		elif absf(velocity.x) > 35.0:
-			set_state(&"run_forward")
+	elif not is_grounded:
+		if velocity.y < -80.0:
+			set_state(&"jump_rise")
+		elif absf(velocity.y) <= 80.0:
+			set_state(&"jump_apex")
 		else:
-			set_state(&"idle_ready")
+			set_state(&"jump_fall")
+	elif absf(velocity.x) > 35.0:
+		set_state(&"run_forward")
+	else:
+		set_state(&"idle_ready")
 
 	state_tick += 1
 	_was_grounded = is_grounded
 
 func buffer_action(action: StringName) -> void:
 	_buffered_actions[action] = INPUT_BUFFER_TICKS
+
+func has_buffered(action: StringName) -> bool:
+	return _buffered_actions.has(action)
 
 func consume_buffered(action: StringName) -> bool:
 	if not _buffered_actions.has(action):
