@@ -7,6 +7,7 @@ var ending_label: Label
 var summary_label: Label
 var details_label: Label
 var restart_button: Button
+var card: PanelContainer
 
 func _ready() -> void:
 	_build_ui()
@@ -19,18 +20,24 @@ func _build_ui() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
-	var panel := PanelContainer.new()
-	panel.set_anchors_preset(Control.PRESET_CENTER)
-	panel.position = Vector2(-420, -300)
-	panel.size = Vector2(840, 600)
-	add_child(panel)
+	var dim := ColorRect.new()
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.color = Color(0.015, 0.02, 0.03, 0.82)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(dim)
+
+	card = PanelContainer.new()
+	card.set_anchors_preset(Control.PRESET_CENTER)
+	card.position = Vector2(-380, -270)
+	card.size = Vector2(760, 540)
+	add_child(card)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 28)
 	margin.add_theme_constant_override("margin_top", 24)
 	margin.add_theme_constant_override("margin_right", 28)
 	margin.add_theme_constant_override("margin_bottom", 24)
-	panel.add_child(margin)
+	card.add_child(margin)
 
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 14)
@@ -38,24 +45,28 @@ func _build_ui() -> void:
 
 	var title := Label.new()
 	title.text = "LA CRÓNICA"
+	title.add_theme_font_size_override("font_size", 26)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(title)
 
 	ending_label = Label.new()
 	ending_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	ending_label.add_theme_font_size_override("font_size", 22)
 	box.add_child(ending_label)
 
 	summary_label = Label.new()
 	summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	summary_label.add_theme_font_size_override("font_size", 18)
 	box.add_child(summary_label)
 
 	details_label = Label.new()
 	details_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	details_label.add_theme_font_size_override("font_size", 17)
 	box.add_child(details_label)
 
 	restart_button = Button.new()
 	restart_button.text = "Comenzar otra aventura"
-	restart_button.custom_minimum_size = Vector2(0, 52)
+	restart_button.custom_minimum_size = Vector2(0, 58)
 	box.add_child(restart_button)
 
 func show_chronicle(world: WorldState, player) -> void:
@@ -63,7 +74,7 @@ func show_chronicle(world: WorldState, player) -> void:
 	summary_label.text = _summary_for(world)
 
 	var decisions: Array[String] = _decisions_for(world)
-	var weapon := String(player.inventory.equipped_weapon)
+	var weapon := _weapon_display_name(player.inventory.equipped_weapon)
 	var lines: Array[String] = []
 	lines.append("Nivel alcanzado: %d" % player.progression.level)
 	lines.append("Arma equipada al final: %s" % weapon)
@@ -129,3 +140,19 @@ func _decisions_for(world: WorldState) -> Array[String]:
 		result.append("La aventura terminó antes de dejar una marca profunda.")
 
 	return result
+
+
+func _weapon_display_name(item_id: StringName) -> String:
+	match item_id:
+		&"rusted_sword": return "Espada oxidada"
+		&"hunter_bow": return "Arco de cazador"
+		&"apprentice_staff": return "Báculo de aprendiz"
+		&"shadow_daggers": return "Dagas sombrías"
+	return "Arma desconocida"
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED and is_instance_valid(card):
+		var width: float = minf(760.0, size.x - 90.0)
+		var height: float = minf(540.0, size.y - 70.0)
+		card.size = Vector2(maxf(width, 560.0), maxf(height, 420.0))
+		card.position = -card.size * 0.5
