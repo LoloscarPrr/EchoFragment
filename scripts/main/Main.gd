@@ -64,7 +64,7 @@ func _ready() -> void:
 	chronicle_panel = ChroniclePanel.new()
 	$UI.add_child(chronicle_panel)
 	chronicle_panel.restarted.connect(_restart_adventure)
-	status_label.text = "FASE 0.10 — Vertical Slice"
+	status_label.text = "FASE 0.11 — Character Animation Prototype"
 	$ValleGrisSign.position.x = 3860.0
 	if not narrative_controller.world_state.discovered_locations.has(&"camino_valle_gris"):
 		narrative_controller.world_state.discovered_locations.append(&"camino_valle_gris")
@@ -159,7 +159,7 @@ func _on_inventory_equip_requested(item_id: StringName) -> void:
 func _on_inventory_closed() -> void:
 	player.can_control = true
 	virtual_controls.visible = true
-	status_label.text = "FASE 0.10 — Vertical Slice"
+	status_label.text = "FASE 0.11 — Character Animation Prototype"
 
 func _on_skill_unlock_requested(skill_id: StringName) -> void:
 	if player.unlock_skill(skill_id):
@@ -170,7 +170,7 @@ func _on_skill_unlock_requested(skill_id: StringName) -> void:
 func _on_skills_closed() -> void:
 	player.can_control = true
 	virtual_controls.visible = true
-	status_label.text = "FASE 0.10 — Vertical Slice"
+	status_label.text = "FASE 0.11 — Character Animation Prototype"
 
 func _on_item_picked_up(item_id: StringName, amount: int) -> void:
 	player.add_item(item_id, amount)
