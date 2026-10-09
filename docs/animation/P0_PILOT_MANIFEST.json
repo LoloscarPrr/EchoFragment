@@ -1,0 +1,28 @@
+{
+  "document_version": "0.1",
+  "project": "EchoFragment",
+  "character_working_name": "Portador del Eco",
+  "simulation_hz": 60,
+  "target_render_fps": 60,
+  "provisional_input_plan": {
+    "input_buffer_ticks": 6,
+    "coyote_time_ticks": 5
+  },
+  "proposed_hitstop": {
+    "light_ticks": 4,
+    "medium_ticks": 6,
+    "heavy_ticks": 8,
+    "super_max_ticks": 10
+  },
+  "pilot": [
+    {"id":"idle_ready","drawings":10,"duration_ticks":60,"loop":true},
+    {"id":"run_forward","drawings":10,"duration_ticks":30,"loop":true},
+    {"id":"jump_start","drawings":3,"duration_ticks":6,"loop":false},
+    {"id":"jump_rise","drawings":4,"duration_ticks":12,"loop":true},
+    {"id":"jump_apex","drawings":2,"duration_ticks":6,"loop":false},
+    {"id":"jump_fall","drawings":3,"duration_ticks":12,"loop":true},
+    {"id":"land_light","drawings":3,"duration_ticks":8,"loop":false},
+    {"id":"attack_light","drawings":6,"duration_ticks":18,"startup_ticks":4,"active":[5,7],"recovery_ticks":11},
+    {"id":"hit_light","drawings":4,"duration_ticks":14,"loop":false}
+  ]
+}
