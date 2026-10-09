@@ -51,9 +51,12 @@ func _on_continue_pressed() -> void:
 
 func _setup_presentation() -> void:
 	var panel: PanelContainer = $Panel
-	panel.set_anchors_preset(Control.PRESET_CENTER)
-	panel.position = Vector2(-390, -245)
-	panel.size = Vector2(780, 490)
+	panel.anchor_left = 0.5
+	panel.anchor_top = 0.5
+	panel.anchor_right = 0.5
+	panel.anchor_bottom = 0.5
+	_apply_panel_size(panel)
+
 	title_label.add_theme_font_size_override("font_size", 24)
 	body_label.add_theme_font_size_override("font_size", 18)
 	result_label.add_theme_font_size_override("font_size", 18)
@@ -61,10 +64,14 @@ func _setup_presentation() -> void:
 	result_label.custom_minimum_size = Vector2(0, 72)
 	continue_button.custom_minimum_size = Vector2(0, 56)
 
+func _apply_panel_size(panel: PanelContainer) -> void:
+	var width: float = clampf(size.x - 96.0, 560.0, 780.0)
+	var height: float = clampf(size.y - 88.0, 390.0, 490.0)
+	panel.offset_left = -width * 0.5
+	panel.offset_right = width * 0.5
+	panel.offset_top = -height * 0.5
+	panel.offset_bottom = height * 0.5
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED and is_node_ready():
-		var panel: PanelContainer = $Panel
-		var width: float = minf(780.0, size.x - 80.0)
-		var height: float = minf(490.0, size.y - 70.0)
-		panel.size = Vector2(maxf(width, 520.0), maxf(height, 360.0))
-		panel.position = -panel.size * 0.5
+		_apply_panel_size($Panel)
