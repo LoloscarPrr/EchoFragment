@@ -56,6 +56,18 @@ func _draw() -> void:
 		var flicker := 0.50 + 0.25 * sin(_mist_time * 1.2 + float(i) * 1.9)
 		draw_line(Vector2(x - 4.0, y + 11.0), Vector2(x + 2.0, y - 6.0), Color(0.67, 0.19, 0.29, flicker), 2.0)
 		draw_line(Vector2(x + 2.0, y - 6.0), Vector2(x + 7.0, y - 13.0), Color(0.80, 0.31, 0.42, flicker * 0.8), 2.0)
+	# Distant hanging dust adds life while remaining behind actors.
+	for i in range(32):
+		var seed := float(i)
+		var x := fposmod(seed * 137.0 + sin(_mist_time * (0.18 + float(i % 4) * 0.06) + seed) * 20.0, world_width)
+		var y := 320.0 + fposmod(seed * 71.0, 240.0) + sin(_mist_time * 0.65 + seed * 1.7) * 8.0
+		var opacity := 0.12 + 0.09 * (0.5 + 0.5 * sin(_mist_time * 1.4 + seed))
+		draw_circle(Vector2(x, y), 1.5 + float(i % 3) * 0.6, Color(0.67, 0.76, 0.80, opacity))
+	# Shallow erosion lines tie road slabs and ruin silhouettes together.
+	for i in range(18):
+		var x := float(i) * 232.0 + 18.0
+		draw_line(Vector2(x, ground_y - 9.0), Vector2(x + 50.0, ground_y - 6.0), Color(0.40, 0.41, 0.39, 0.24), 2.0)
+		draw_line(Vector2(x + 53.0, ground_y - 6.0), Vector2(x + 70.0, ground_y - 11.0), Color(0.40, 0.41, 0.39, 0.18), 1.0)
 	# Soft, shifting banks of mist stay below head height.
 	for i in range(17):
 		var x := float(i) * 265.0 + sin(_mist_time * 0.15 + float(i)) * 18.0
