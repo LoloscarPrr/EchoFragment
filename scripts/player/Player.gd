@@ -33,6 +33,9 @@ var inventory := Inventory.new()
 var progression := Progression.new()
 var animation_controller := CharacterAnimationController.new()
 var proxy_visual: ProtagonistProxyVisual
+var combat_effects: P0CombatEffects
+var _sword_hit_committed := false
+var _hitstop_active := false
 
 var _combo_step := 0
 var _last_attack_time := -99.0
@@ -54,6 +57,8 @@ func _ready() -> void:
 	_visual_base_scale = visual.scale
 	proxy_visual = ProtagonistProxyVisual.new()
 	add_child(proxy_visual)
+	combat_effects = P0CombatEffects.new()
+	add_child(combat_effects)
 	visual.visible = false
 	health_changed.emit(health, max_health)
 	stamina_changed.emit(stamina, max_stamina)
@@ -107,6 +112,7 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	animation_controller.tick(is_on_floor(), velocity)
+	_process_animation_combat()
 	_update_visual(delta)
 
 func equip_weapon(item_id: StringName) -> bool:
@@ -213,8 +219,8 @@ func _try_attack(now: float) -> void:
 			_attack_daggers(now)
 
 func _attack_sword(now: float) -> void:
-	if _combo_step == 0 or now - _last_attack_time > combo_window:
-		animation_controller.start_light_attack()
+	animation_controller.start_light_attack()
+	_sword_hit_committed = false
 	if now - _last_attack_time <= combo_window:
 		_combo_step = (_combo_step % 3) + 1
 	else:
@@ -232,7 +238,6 @@ func _attack_sword(now: float) -> void:
 		hitbox.knockback += 80.0
 	hitbox.position.x = reach_values[_combo_step - 1] * facing
 	_attack_locked_until = now + lock_values[_combo_step - 1]
-	hitbox.strike(global_position)
 
 	var angles := [0.18, -0.26, 0.42]
 	var tween := create_tween()
@@ -300,7 +305,7 @@ func _spawn_projectile(scene: PackedScene, damage: int, speed: float, knockback:
 
 func _update_visual(delta: float) -> void:
 	if is_instance_valid(proxy_visual):
-		proxy_visual.configure(animation_controller.state, animation_controller.state_progress(), facing)
+		proxy_visual.configure(animation_controller.state, animation_controller.state_progress(), facing, animation_controller.drawing_index())
 	if absf(velocity.x) > 15.0 and is_on_floor():
 		var bob := sin(Time.get_ticks_msec() * 0.018) * 2.0
 		visual.position.y = move_toward(visual.position.y, bob, 40.0 * delta)
@@ -370,3 +375,37 @@ func _on_skill_unlocked(skill_id: StringName) -> void:
 		stamina = minf(max_stamina, stamina + 20.0)
 		stamina_changed.emit(stamina, max_stamina)
 	progression_changed.emit()
+
+
+func _process_animation_combat() -> void:
+	if weapon_mode != WeaponMode.SWORD:
+		return
+	if animation_controller.state != &"attack_light":
+		_sword_hit_committed = false
+		return
+	if _sword_hit_committed:
+		return
+
+	var tick := animation_controller.state_tick
+	if tick < 5:
+		return
+
+	_sword_hit_committed = true
+	if is_instance_valid(combat_effects):
+		combat_effects.play_slash(facing)
+
+	var hit_count := hitbox.strike(global_position)
+	if hit_count > 0:
+		if is_instance_valid(combat_effects):
+			combat_effects.play_impact(Vector2(hitbox.position.x, -6.0))
+		_apply_hit_stop(0.055)
+
+func _apply_hit_stop(duration: float) -> void:
+	if _hitstop_active:
+		return
+	_hitstop_active = true
+	var previous_scale := Engine.time_scale
+	Engine.time_scale = 0.08
+	await get_tree().create_timer(duration, true, false, true).timeout
+	Engine.time_scale = previous_scale
+	_hitstop_active = false
