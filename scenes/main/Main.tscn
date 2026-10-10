@@ -1,7 +1,8 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://scripts/main/Main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/world/ValleGrisAtmosphere.gd" id="14_atmosphere"]
+[ext_resource type="Script" path="res://scripts/enemies/EnemyVisualDetail.gd" id="15_enemy_detail"]
 [ext_resource type="Script" path="res://scripts/player/Player.gd" id="2_player"]
 [ext_resource type="Script" path="res://scripts/enemies/Enemy.gd" id="3_enemy"]
 [ext_resource type="Script" path="res://scripts/ui/VirtualControls.gd" id="4_controls"]
@@ -228,6 +229,10 @@ shape = SubResource("EnemyShape")
 polygon = PackedVector2Array(-23, -37, 23, -37, 28, 37, -28, 37)
 color = Color(0.58, 0.19, 0.19, 1)
 
+[node name="EnemyDetail" type="Node2D" parent="Ambusher/Visual"]
+script = ExtResource("15_enemy_detail")
+archetype = 0
+
 [node name="Hurtbox" type="Area2D" parent="Ambusher"]
 collision_layer = 32
 collision_mask = 0
@@ -262,6 +267,10 @@ shape = SubResource("EnemyShape")
 [node name="Visual" type="Polygon2D" parent="RoadRaider"]
 polygon = PackedVector2Array(-23, -37, 23, -37, 28, 37, -28, 37)
 color = Color(0.52, 0.16, 0.18, 1)
+
+[node name="EnemyDetail" type="Node2D" parent="RoadRaider/Visual"]
+script = ExtResource("15_enemy_detail")
+archetype = 0
 
 [node name="Hurtbox" type="Area2D" parent="RoadRaider"]
 collision_layer = 32
@@ -299,6 +308,10 @@ shape = SubResource("EnemyShape")
 [node name="Visual" type="Polygon2D" parent="GateWatcher"]
 polygon = PackedVector2Array(-25, -41, 25, -41, 30, 41, -30, 41)
 color = Color(0.34, 0.18, 0.22, 1)
+
+[node name="EnemyDetail" type="Node2D" parent="GateWatcher/Visual"]
+script = ExtResource("15_enemy_detail")
+archetype = 1
 
 [node name="Hurtbox" type="Area2D" parent="GateWatcher"]
 collision_layer = 32
@@ -342,6 +355,10 @@ color = Color(0.45, 0.48, 0.54, 1)
 [node name="Crack" type="Polygon2D" parent="FragmentedKnight/Visual"]
 polygon = PackedVector2Array(-3, -42, 5, -24, -2, -8, 8, 10, 0, 34, -6, 10, 1, -6, -7, -24)
 color = Color(0.48, 0.18, 0.22, 1)
+
+[node name="EnemyDetail" type="Node2D" parent="FragmentedKnight/Visual"]
+script = ExtResource("15_enemy_detail")
+archetype = 2
 
 [node name="Hurtbox" type="Area2D" parent="FragmentedKnight"]
 collision_layer = 32
