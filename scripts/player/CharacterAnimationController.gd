@@ -30,6 +30,10 @@ func tick(is_grounded: bool, velocity: Vector2) -> void:
 		state_tick += 1
 		_was_grounded = is_grounded
 		return
+	if state == &"jump_start" and state_tick < 6:
+		state_tick += 1
+		_was_grounded = is_grounded
+		return
 
 	if is_grounded and not _was_grounded:
 		_land_ticks_left = 8
