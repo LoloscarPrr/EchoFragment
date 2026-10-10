@@ -96,5 +96,26 @@ func _draw() -> void:
 	draw_line(hilt - Vector2(0, 7), hilt + Vector2(0, 7), metal, 4.0)
 	draw_circle(hilt, 3.0, echo)
 
+	# Animated scarf and coat stitching accentuate direction and momentum.
+	var flutter := sin(_time * 8.0) * 3.0
+	var scarf_pull := -10.0 if anim_state == &"run_forward" else -4.0
+	if anim_state == &"jump_rise" or anim_state == &"jump_fall":
+		scarf_pull = -13.0
+	draw_colored_polygon(PackedVector2Array([
+		Vector2(-8 * flip, -20 + crouch),
+		Vector2(-17 * flip, -17 + crouch),
+		Vector2((scarf_pull - 25.0) * flip, -22 + flutter + crouch),
+		Vector2((scarf_pull - 18.0) * flip, -27 + flutter + crouch)
+	]), wine)
+	draw_line(Vector2(-12 * flip, 14 + crouch), Vector2((-13 + coat_swing) * flip, 37 + crouch), Color(0.57, 0.25, 0.30, 0.78), 2.0)
+	draw_line(Vector2(11 * flip, 13 + crouch), Vector2((13 + coat_swing) * flip, 35 + crouch), Color(0.57, 0.25, 0.30, 0.78), 2.0)
+
+	# An arc follows the sword's active attack poses; purely visual, no hitbox change.
+	if anim_state == &"attack_light" and drawing_index >= 2 and drawing_index <= 4:
+		var arc_alpha := 0.42 if drawing_index == 3 else 0.22
+		var center := hilt + Vector2(14.0 * flip, 0)
+		draw_arc(center, 67.0, -0.83 if flip > 0 else PI - 0.83, 0.65 if flip > 0 else PI + 0.65, 19, Color(0.93, 0.23, 0.31, arc_alpha), 5.0)
+		draw_arc(center, 73.0, -0.52 if flip > 0 else PI - 0.52, 0.35 if flip > 0 else PI + 0.35, 13, Color(0.95, 0.74, 0.76, arc_alpha * 0.6), 2.0)
+
 	# Broken circular brooch.
 	draw_arc(Vector2(0, -13 + crouch), 5.0, -2.7, 2.2, 14, echo, 2.0)
