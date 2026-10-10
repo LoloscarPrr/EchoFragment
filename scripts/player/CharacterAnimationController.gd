@@ -82,6 +82,9 @@ func light_attack_active() -> bool:
 func light_attack_finished() -> bool:
 	return state == &"attack_light" and state_tick >= 18
 
+func drawing_index() -> int:
+	return P0FrameLibrary.drawing_index(state, state_tick)
+
 func state_progress() -> float:
 	var duration := _duration_for(state)
 	if duration <= 0:
