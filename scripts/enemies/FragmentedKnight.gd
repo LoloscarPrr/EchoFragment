@@ -23,12 +23,11 @@ var _broken_emitted := false
 
 @onready var visual: Polygon2D = $Visual
 @onready var hitbox: CombatHitbox = $AttackHitbox
-var telegraph: Node2D
+var telegraph: KnightTelegraph
 
 func _ready() -> void:
 	health = max_health
-	telegraph = Node2D.new()
-	telegraph.set_script(preload("res://scripts/enemies/KnightTelegraph.gd"))
+	telegraph = KnightTelegraph.new()
 	add_child(telegraph)
 	target = get_tree().get_first_node_in_group("player") as CharacterBody2D
 	health_changed.emit(health, max_health)
