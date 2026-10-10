@@ -4,63 +4,32 @@ extends Node2D
 var anim_state: StringName = &"idle_ready"
 var facing := 1.0
 var state_progress := 0.0
+var drawing_index := 0
 var _time := 0.0
 
 func _process(delta: float) -> void:
 	_time += delta
 	queue_redraw()
 
-func configure(state: StringName, progress: float, direction: float) -> void:
+func configure(state: StringName, progress: float, direction: float, frame_index: int = 0) -> void:
 	anim_state = state
 	state_progress = progress
+	drawing_index = frame_index
 	if direction != 0.0:
 		facing = signf(direction)
 	queue_redraw()
 
 func _draw() -> void:
-	var flip := facing
-	var bob := 0.0
-	var lean := 0.0
-	var crouch := 0.0
-	var sword_angle := -0.18
-	var sword_offset := Vector2(16.0 * flip, -8.0)
-	var coat_swing := 0.0
-
-	match anim_state:
-		&"idle_ready":
-			bob = sin(_time * 4.0) * 1.2
-			coat_swing = sin(_time * 3.2) * 3.0
-		&"run_forward":
-			bob = sin(_time * 12.0) * 3.0
-			lean = 0.14 * flip
-			coat_swing = -10.0 * flip + sin(_time * 12.0) * 4.0
-		&"jump_start":
-			crouch = 10.0
-			lean = 0.10 * flip
-		&"jump_rise":
-			lean = 0.12 * flip
-			coat_swing = -8.0 * flip
-		&"jump_apex":
-			coat_swing = -4.0 * flip
-		&"jump_fall":
-			lean = -0.06 * flip
-			coat_swing = 8.0 * flip
-		&"land_light":
-			crouch = 12.0 * (1.0 - state_progress)
-		&"attack_light":
-			var p := state_progress
-			if p < 0.23:
-				sword_angle = -0.70
-				lean = -0.10 * flip
-			elif p < 0.45:
-				sword_angle = 0.55
-				lean = 0.18 * flip
-			else:
-				sword_angle = lerpf(0.55, -0.18, (p - 0.45) / 0.55)
-			coat_swing = -12.0 * flip
-		&"hit_light":
-			lean = -0.18 * flip
-			crouch = 4.0
+	var flip: float = facing
+	var pose: Dictionary = P0FrameLibrary.pose(anim_state, drawing_index)
+	var bob: float = float(pose.get("bob", 0.0))
+	var lean: float = float(pose.get("lean", 0.0)) * flip
+	var crouch: float = float(pose.get("crouch", 0.0))
+	var sword_angle: float = float(pose.get("sword", -0.22))
+	var coat_swing: float = float(pose.get("coat", 0.0))
+	var reach: float = float(pose.get("reach", 0.0))
+	var stride: float = float(pose.get("stride", 0.0))
+	var sword_offset := Vector2((16.0 + reach) * flip, -8.0)
 
 	position.y = bob
 	rotation = lean
@@ -87,12 +56,12 @@ func _draw() -> void:
 
 	# Legs.
 	draw_colored_polygon(PackedVector2Array([
-		Vector2(-13 * flip, 24 + crouch), Vector2(-2 * flip, 24 + crouch),
-		Vector2(-6 * flip, 49 + crouch), Vector2(-17 * flip, 49 + crouch)
+		Vector2((-13 - stride * 0.25) * flip, 24 + crouch), Vector2(-2 * flip, 24 + crouch),
+		Vector2((-6 - stride) * flip, 49 + crouch), Vector2((-17 - stride) * flip, 49 + crouch)
 	]), dark)
 	draw_colored_polygon(PackedVector2Array([
-		Vector2(2 * flip, 24 + crouch), Vector2(13 * flip, 24 + crouch),
-		Vector2(17 * flip, 49 + crouch), Vector2(6 * flip, 49 + crouch)
+		Vector2(2 * flip, 24 + crouch), Vector2((13 + stride * 0.25) * flip, 24 + crouch),
+		Vector2((17 + stride) * flip, 49 + crouch), Vector2((6 + stride) * flip, 49 + crouch)
 	]), dark)
 
 	# Torso armor.
