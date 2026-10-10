@@ -36,6 +36,26 @@ func _draw() -> void:
 		draw_line(root, trunk_end, ink, 8.0)
 		draw_line(trunk_end + Vector2(0, 25), trunk_end + Vector2(-22, -15), ink, 5.0)
 		draw_line(trunk_end + Vector2(0, 31), trunk_end + Vector2(24, -7), ink, 4.0)
+	# Broken road slabs and scattered rubble create visual rhythm along the trail.
+	for i in range(59):
+		var x := 24.0 + float(i) * 70.0
+		var variation := float((i * 41) % 17)
+		var slab_width := 31.0 + float((i * 13) % 21)
+		draw_colored_polygon(PackedVector2Array([
+			Vector2(x, ground_y - 2.0),
+			Vector2(x + slab_width, ground_y - 2.0),
+			Vector2(x + slab_width - 8.0, ground_y + 7.0),
+			Vector2(x + 4.0, ground_y + 7.0)
+		]), Color(0.29, 0.31, 0.32, 0.42))
+		if i % 4 == 0:
+			draw_line(Vector2(x + 12.0, ground_y - 3.0), Vector2(x + 16.0 + variation, ground_y - 8.0), Color(0.45, 0.48, 0.49, 0.25), 2.0)
+	# Fragmented echoes in the ruins glow subtly without obscuring interaction cues.
+	for i in range(12):
+		var x := 300.0 + float(i) * 321.0
+		var y := 479.0 - float((i * 17) % 55)
+		var flicker := 0.50 + 0.25 * sin(_mist_time * 1.2 + float(i) * 1.9)
+		draw_line(Vector2(x - 4.0, y + 11.0), Vector2(x + 2.0, y - 6.0), Color(0.67, 0.19, 0.29, flicker), 2.0)
+		draw_line(Vector2(x + 2.0, y - 6.0), Vector2(x + 7.0, y - 13.0), Color(0.80, 0.31, 0.42, flicker * 0.8), 2.0)
 	# Soft, shifting banks of mist stay below head height.
 	for i in range(17):
 		var x := float(i) * 265.0 + sin(_mist_time * 0.15 + float(i)) * 18.0
