@@ -1,3 +1,4 @@
+class_name KnightTelegraph
 extends Node2D
 ## Visual telegraphs for the Fragmented Knight; no combat or collision logic.
 var windup_ratio := 0.0
