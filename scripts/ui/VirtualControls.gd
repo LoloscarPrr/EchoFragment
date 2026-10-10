@@ -31,7 +31,14 @@ func _input(event: InputEvent) -> void:
 		_set_touch(touch.index, _find_action(touch.position) if touch.pressed else "")
 	elif event is InputEventScreenDrag:
 		var drag := event as InputEventScreenDrag
-		_set_touch(drag.index, _find_action(drag.position))
+		var held: String = str(_touch_owner.get(drag.index, ""))
+		if held == "":
+			return
+		if held == "move_left" or held == "move_right":
+			var target: String = _find_action(drag.position)
+			if target == "move_left" or target == "move_right":
+				_set_touch(drag.index, target)
+		# Keep each action captured until its finger is lifted.
 
 func _find_action(screen_position: Vector2) -> String:
 	for index in range(_buttons.size()):
