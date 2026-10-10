@@ -23,9 +23,13 @@ var _broken_emitted := false
 
 @onready var visual: Polygon2D = $Visual
 @onready var hitbox: CombatHitbox = $AttackHitbox
+var telegraph: Node2D
 
 func _ready() -> void:
 	health = max_health
+	telegraph = Node2D.new()
+	telegraph.set_script(preload("res://scripts/enemies/KnightTelegraph.gd"))
+	add_child(telegraph)
 	target = get_tree().get_first_node_in_group("player") as CharacterBody2D
 	health_changed.emit(health, max_health)
 
@@ -72,6 +76,13 @@ func _physics_process(delta: float) -> void:
 			if now >= _state_until:
 				state = State.CHASE
 
+	if is_instance_valid(telegraph):
+		telegraph.active = state == State.WINDUP
+		telegraph.shifting = state == State.PHASE_SHIFT
+		telegraph.phase = phase
+		if state == State.WINDUP:
+			var duration := 0.46 if phase == 1 else 0.26
+			telegraph.windup_ratio = clampf(1.0 - (_state_until - now) / duration, 0.0, 1.0)
 	move_and_slide()
 
 func _begin_windup(now: float, dx: float) -> void:
@@ -80,6 +91,9 @@ func _begin_windup(now: float, dx: float) -> void:
 	var windup: float = 0.46 if phase == 1 else 0.26
 	_state_until = now + windup
 	hitbox.position.x = 76.0 * sign(dx)
+	if is_instance_valid(telegraph):
+		telegraph.attack_direction = signf(dx) if dx != 0.0 else 1.0
+		telegraph.windup_ratio = 0.0
 
 	var tween := create_tween()
 	tween.tween_property(visual, "scale", Vector2(0.88, 1.14), windup * 0.7)
