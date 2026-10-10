@@ -1,6 +1,7 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/main/Main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/world/ValleGrisAtmosphere.gd" id="14_atmosphere"]
 [ext_resource type="Script" path="res://scripts/player/Player.gd" id="2_player"]
 [ext_resource type="Script" path="res://scripts/enemies/Enemy.gd" id="3_enemy"]
 [ext_resource type="Script" path="res://scripts/ui/VirtualControls.gd" id="4_controls"]
@@ -42,6 +43,9 @@ color = Color(0.07, 0.09, 0.13, 1)
 [node name="FarRuins" type="Polygon2D" parent="."]
 polygon = PackedVector2Array(0, 550, 160, 390, 290, 520, 410, 330, 560, 520, 780, 370, 930, 530, 1100, 310, 1290, 520, 1500, 360, 1740, 520, 1960, 340, 2200, 540, 2200, 640, 0, 640)
 color = Color(0.13, 0.16, 0.22, 1)
+
+[node name="ValleGrisAtmosphere" type="Node2D" parent="."]
+script = ExtResource("14_atmosphere")
 
 [node name="Ground" type="StaticBody2D" parent="."]
 collision_layer = 1
