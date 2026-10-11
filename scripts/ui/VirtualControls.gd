@@ -40,6 +40,14 @@ func _input(event: InputEvent) -> void:
 				_set_touch(drag.index, target)
 		# Keep each action captured until its finger is lifted.
 
+# Player reads direction directly, independently of synthetic input actions.
+func get_touch_axis() -> float:
+	if not visible or not OS.has_feature("mobile"):
+		return 0.0
+	var left: bool = _action_holders.has("move_left")
+	var right: bool = _action_holders.has("move_right")
+	return float(int(right) - int(left))
+
 func _find_action(screen_position: Vector2) -> String:
 	for index in range(_buttons.size()):
 		var button: Button = _buttons[index]
