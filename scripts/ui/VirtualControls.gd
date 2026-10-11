@@ -30,9 +30,14 @@ func _ready() -> void:
 		_joystick = Control.new()
 		_joystick.set_script(preload("res://scripts/ui/JoystickVisual.gd"))
 		$Root.add_child(_joystick)
-		_joystick.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-		_joystick.position = Vector2(22, -226)
-		_joystick.size = Vector2(220, 210)
+		_joystick.anchor_left = 0.0
+		_joystick.anchor_right = 0.0
+		_joystick.anchor_top = 1.0
+		_joystick.anchor_bottom = 1.0
+		_joystick.offset_left = 22.0
+		_joystick.offset_right = 242.0
+		_joystick.offset_top = -226.0
+		_joystick.offset_bottom = -16.0
 		_joystick.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _input(event: InputEvent) -> void:
@@ -86,7 +91,8 @@ func _set_joystick_axis(axis: int) -> void:
 	elif axis > 0:
 		_change_count("move_right", 1)
 	if _joystick != null:
-		_joystick.set_axis(float(axis))
+		_joystick.set("axis", float(axis))
+		_joystick.queue_redraw()
 
 # Player reads direction directly, independently of synthetic input actions.
 func get_touch_axis() -> float:
