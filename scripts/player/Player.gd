@@ -85,6 +85,12 @@ func _physics_process(delta: float) -> void:
 	var direction := 0.0
 	if can_control:
 		direction = Input.get_axis("move_left", "move_right")
+		# Keep directional finger input independent from jump/attack input events.
+		var touch_controls := get_node_or_null("../VirtualControls")
+		if touch_controls != null and touch_controls.has_method("get_touch_axis"):
+			var touch_direction: float = touch_controls.get_touch_axis()
+			if touch_direction != 0.0:
+				direction = touch_direction
 
 	if direction != 0.0:
 		facing = sign(direction)
