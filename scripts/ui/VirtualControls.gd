@@ -7,6 +7,9 @@ var _buttons: Array[Button] = []
 var _touch_owner: Dictionary = {}
 var _action_holders: Dictionary = {}
 var _mouse_actions: Dictionary = {}
+var _joystick: Control
+var _joystick_finger := -1
+var _joystick_axis := 0
 
 func _ready() -> void:
 	_buttons = [$Root/Left, $Root/Right, $Root/Jump, $Root/Attack, $Root/Dodge, $Root/Interact, $Root/Inventory, $Root/Skills]
@@ -16,9 +19,21 @@ func _ready() -> void:
 		button.focus_mode = Control.FOCUS_NONE
 		if OS.has_feature("mobile"):
 			button.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			if index < 2:
+				button.visible = false
 		else:
 			button.button_down.connect(_on_mouse_button.bind(action, true))
 			button.button_up.connect(_on_mouse_button.bind(action, false))
+
+	# The joystick occupies the old left/right area, with generous thumb travel.
+	if OS.has_feature("mobile"):
+		_joystick = Control.new()
+		_joystick.set_script(preload("res://scripts/ui/JoystickVisual.gd"))
+		$Root.add_child(_joystick)
+		_joystick.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+		_joystick.position = Vector2(22, -226)
+		_joystick.size = Vector2(220, 210)
+		_joystick.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _input(event: InputEvent) -> void:
 	if not OS.has_feature("mobile"):
@@ -28,9 +43,19 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventScreenTouch:
 		var touch := event as InputEventScreenTouch
-		_set_touch(touch.index, _find_action(touch.position) if touch.pressed else "")
+		if touch.pressed and _joystick != null and _joystick.get_global_rect().has_point(touch.position):
+			_joystick_finger = touch.index
+			_update_joystick(touch.position)
+		elif not touch.pressed and touch.index == _joystick_finger:
+			_joystick_finger = -1
+			_set_joystick_axis(0)
+		else:
+			_set_touch(touch.index, _find_action(touch.position) if touch.pressed else "")
 	elif event is InputEventScreenDrag:
 		var drag := event as InputEventScreenDrag
+		if drag.index == _joystick_finger:
+			_update_joystick(drag.position)
+			return
 		var held: String = str(_touch_owner.get(drag.index, ""))
 		if held == "":
 			return
@@ -39,6 +64,29 @@ func _input(event: InputEvent) -> void:
 			if target == "move_left" or target == "move_right":
 				_set_touch(drag.index, target)
 		# Keep each action captured until its finger is lifted.
+
+func _update_joystick(screen_position: Vector2) -> void:
+	if _joystick == null:
+		return
+	var center := _joystick.get_global_rect().get_center()
+	var dx := screen_position.x - center.x
+	var dead_zone := 26.0
+	_set_joystick_axis(-1 if dx < -dead_zone else (1 if dx > dead_zone else 0))
+
+func _set_joystick_axis(axis: int) -> void:
+	if _joystick_axis == axis:
+		return
+	if _joystick_axis < 0:
+		_change_count("move_left", -1)
+	elif _joystick_axis > 0:
+		_change_count("move_right", -1)
+	_joystick_axis = axis
+	if axis < 0:
+		_change_count("move_left", 1)
+	elif axis > 0:
+		_change_count("move_right", 1)
+	if _joystick != null:
+		_joystick.set_axis(float(axis))
 
 # Player reads direction directly, independently of synthetic input actions.
 func get_touch_axis() -> float:
@@ -95,6 +143,8 @@ func _on_mouse_button(action: String, pressed: bool) -> void:
 			_send_action(action, false)
 
 func _release_all() -> void:
+	_joystick_finger = -1
+	_set_joystick_axis(0)
 	for action in _action_holders.keys():
 		if not _mouse_actions.has(action):
 			_send_action(str(action), false)
