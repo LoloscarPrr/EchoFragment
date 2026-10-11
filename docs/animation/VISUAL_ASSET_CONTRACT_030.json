@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "project": "EchoFragment",
+  "milestone": "0.30",
+  "protagonist": "Portador del Eco",
+  "active_renderer": "procedural_fallback",
+  "preferred_asset_format": "png_rgba_transparent",
+  "animation_contract": {
+    "simulation_hz": 60,
+    "render_target_fps": 60,
+    "world_origin": "existing Player CharacterBody2D origin; root/pivot anchored in world",
+    "art_scope": "pilot; assets do not exist yet",
+    "states": [
+      "idle_ready",
+      "run_forward",
+      "jump_start",
+      "jump_rise",
+      "jump_apex",
+      "jump_fall",
+      "land_light",
+      "attack_light",
+      "hit_light"
+    ],
+    "next_states": [
+      "dodge",
+      "attack_medium",
+      "attack_heavy",
+      "air_attack"
+    ]
+  },
+  "safe_integration": [
+    "keep hitboxes separate from art",
+    "keep procedural fallback",
+    "test narration touch UI",
+    "preserve applicationId and signature"
+  ],
+  "asset_paths": {
+    "protagonist": "assets/characters/portador_eco/",
+    "world": "assets/world/valle_gris/",
+    "enemies": "assets/enemies/",
+    "effects": "assets/fx/"
+  }
+}
