@@ -22,3 +22,7 @@ jobs:
       - name: Validate project
         run: |
           ./Godot_v4.3-stable_linux.x86_64 --headless --path . --editor --quit
+
+      - name: P0 protagonist sprite runtime smoke
+        run: |
+          ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://scripts/tests/P0ArtSmoke.gd
