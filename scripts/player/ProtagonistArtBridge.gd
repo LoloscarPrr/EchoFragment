@@ -147,9 +147,9 @@ func _draw() -> void:
 	if _active_state != &"attack_light" or _active_frame != 1:
 		return
 	var trail := PackedVector2Array()
-	for step in range(27):
-		var theta := lerpf(-1.05, 0.90, float(step) / 26.0)
-		trail.append(Vector2(9.0 + cos(theta) * 81.0 * _facing, -12.0 + sin(theta) * 74.0))
+	for step in range(33):
+		var theta := lerpf(-1.60, 1.65, float(step) / 32.0)
+		trail.append(Vector2((26.0 + cos(theta) * 60.0) * _facing, -7.0 + sin(theta) * 45.0))
 	draw_polyline(trail, Color(0.88, 0.06, 0.12, 0.18), 15.0, true)
 	draw_polyline(trail, Color(0.95, 0.12, 0.19, 0.55), 6.0, true)
 	draw_polyline(trail, Color(1.0, 0.55, 0.55, 0.42), 2.0, true)
