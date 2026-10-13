@@ -115,6 +115,10 @@ func configure(state: StringName, drawing_index: int, facing: float) -> bool:
 		return false
 	var nominal: int = int(P0FrameLibrary.FRAME_COUNTS.get(state, count))
 	var mapped: int = clampi(int(floor(float(drawing_index) * count / float(maxi(1, nominal)))), 0, count - 1)
+	# The pilot has only two attack drawings; show the slash at the actual
+	# contact window (P0 drawing #2), NOT at the end of recovery.
+	if state == &"attack_light" and count == 2:
+		mapped = 1 if drawing_index == 2 else 0
 	_sprite.animation = state
 	_sprite.frame = mapped
 	_sprite.flip_h = facing < 0.0
