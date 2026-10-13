@@ -63,6 +63,13 @@ Para cada estado, exigir movimiento o pose diferenciada, frames ordenados, pivot
 - [ ] **E04** Dirección de arte aprueba silueta y movimiento; usuario confirma experiencia en móvil.
 - [ ] **E05** Registro de commit, evidencias, limitaciones y fallos restantes, y decisión final: APROBADO / REQUIERE CORRECCIÓN.
 
+## Avance comprobado P0.1 — 12 de octubre de 2026
+- **Arte piloto creado:** el archivo `assets/characters/portador_eco/portador_idle_run_atlas.png` existe realmente, se verificó su contenido binario mediante SHA de Git y contiene **5 poses** con transparencia en celdas de **88 × 94**: **2 de idle** y **3 de run**. Se trata de una primera extracción/limpieza del concepto, todavía no de sprites finales aprobados.
+- **Integración:** `ProtagonistArtBridge.gd` crea automáticamente `SpriteFrames` desde el PNG para `idle_ready` y `run_forward`. `Player.gd` utiliza arte solo en esos estados; conserva el renderer procedural en salto, ataque, golpe y esquiva. La física y los controles no fueron modificados.
+- **Validación técnica:** [Godot Check aprobado para commit `d9310f2`](https://github.com/LoloscarPrr/EchoFragment/actions/runs/38333258202).
+- **Aún NO aprobado:** faltan más frames y limpieza fina de silueta, sprites finales de 8 estados adicionales, prueba visual en Android y build del hito; no marcar los checks A04/A05/B como completos.
+- **Siguiente lote:** refinar las poses en movimiento y completar `jump_start`, `jump_rise`, `jump_apex`, `jump_fall` y `land_light` antes de entregar una nueva APK de evaluación.
+
 ## Diagnóstico actual resumido
 | Elemento | Comprobación | Resultado |
 |---|---|---|
@@ -71,7 +78,8 @@ Para cada estado, exigir movimiento o pose diferenciada, frames ordenados, pivot
 | Estado visual de esquiva | Código actual | ❌ Sin animación independiente |
 | Puente opcional de sprites | Código en rama 0.30 | ✅ Incorporado |
 | Validación Godot del puente | Workflow | ✅ Verde |
-| Sprites PNG finales | Árbol Git de rama | ❌ No existen |
+| Sprites PNG piloto | Árbol Git de rama | ✅ 5 poses integradas para idle/run (aún provisionales) |
+| Sprites PNG finales P0 | Revisión de arte y cobertura completa | ❌ No existen |
 | `SpriteFrames` final | Árbol Git de rama | ❌ No existe |
 | APK con protagonista rediseñado | Acciones de la rama | ⏳ No generada ni probada |
 | **P0 aprobado** | A + B + C + D + E | **❌ NO** |
