@@ -33,7 +33,7 @@ Para cada estado, exigir movimiento o pose diferenciada, frames ordenados, pivot
 | B09 | `hit_light` | 4 | Retroceso perceptible sin distorsionar posición del personaje | [ ] |
 | B10 | `dodge` | **por fijar** | Silueta distinguible de carrera; coincide con ventana real de esquiva | [ ] |
 
-**Deuda identificada:** el manifiesto piloto actual solo incluye 9 estados: `dodge` no está definido en el manifiesto, `P0FrameLibrary.gd` ni `CharacterAnimationController.gd` como animación independiente. Hay que cerrar B10 antes de declarar P0 completo. Los 9 estados actuales suman 45 dibujos *planeados*, no PNG reales.
+**Deuda identificada:** el manifiesto piloto actual solo incluye 9 estados: `dodge` no está definido en el manifiesto, `P0FrameLibrary.gd` ni `CharacterAnimationController.gd` como animación independiente. La esquiva ya tiene estado de animación propio y dos dibujos piloto integrados, pero faltan las poses definitivas y pruebas visuales. El manifiesto original de 9 estados sigue siendo una referencia histórica, no la cobertura real actual.
 
 ## C — Integración técnica y regresión (BLOQUEANTE)
 - [x] **C01** El puente opcional `ProtagonistArtBridge.gd` existe y conserva fallback si falta `SpriteFrames`. Evidencia: commit `48e2cf59`; inspección del código.
@@ -70,15 +70,24 @@ Para cada estado, exigir movimiento o pose diferenciada, frames ordenados, pivot
 - **Aún NO aprobado:** faltan más frames y limpieza fina de silueta, sprites finales de 8 estados adicionales, prueba visual en Android y build del hito; no marcar los checks A04/A05/B como completos.
 - **Siguiente lote:** refinar las poses en movimiento y completar `jump_start`, `jump_rise`, `jump_apex`, `jump_fall` y `land_light` antes de entregar una nueva APK de evaluación.
 
+## Avance comprobado P0.2 — 12 de octubre de 2026
+- **Arte adicional integrado:** `assets/characters/portador_eco/portador_p0_motion_atlas.png`, PNG con transparencia, **10 dibujos piloto** nuevos, celdas 96 × 86 y cinco columnas. Fue comparado por SHA Git con los bytes locales de referencia para garantizar integridad del PNG.
+- **Cobertura actual total:** 15 dibujos piloto en 10 estados: reposo (2), correr (3), iniciar salto (1), subir (1), cima (1), caer (1), aterrizaje (1), ataque ligero (2), recibir daño (1) y esquivar (2). Estos números son **inferiores** a los dibujos finales previstos; no se consideran animaciones aprobadas todavía.
+- **Esquiva:** `CharacterAnimationController.gd` implementa el estado `dodge` de 11 ticks; `Player.gd` continúa avanzando la animación durante la ventana de esquiva; `P0FrameLibrary.gd` añade fallback procedural específico.
+- **Integración:** `ProtagonistArtBridge.gd` admite dos atlas independientes, direcciones derecha/izquierda y fallback para estados sin arte. Se conserva el control físico original.
+- **CI de runtime:** [Godot Check + P0 sprite runtime smoke APROBADO para commit `714a035f`](https://github.com/LoloscarPrr/EchoFragment/actions/runs/38336457216). El test cargó los 10 estados, verificó conteos de dibujos, volteo a izquierda y fallback para estados no definidos.
+- **Pendientes bloqueantes:** limpiar/elaborar secuencias con más dibujos reales, corregir alineación anatómica/pivotes y efectos de ataque, comprobar rendimiento y controles sobre Android, y generar APK de hito cuando exista un salto visual claro. **No declarar P0 aprobado**.
+- **Rama estable:** `main` sigue en v0.21, sin editar.
+
 ## Diagnóstico actual resumido
 | Elemento | Comprobación | Resultado |
 |---|---|---|
 | Jugabilidad móvil v0.21 | Confirmación del usuario | ✅ Base estable |
-| Plan de 9 estados | Manifiesto JSON y `P0FrameLibrary` | ✅ Especificado, no dibujado |
-| Estado visual de esquiva | Código actual | ❌ Sin animación independiente |
+| Plan P0 de 10 estados | Animaciones + manifiesto de producción actualizado | ✅ Especificados, parcialmente dibujados |
+| Estado visual de esquiva | Controlador + poses piloto | ✅ Implementado; requiere pulido y prueba móvil |
 | Puente opcional de sprites | Código en rama 0.30 | ✅ Incorporado |
-| Validación Godot del puente | Workflow | ✅ Verde |
-| Sprites PNG piloto | Árbol Git de rama | ✅ 5 poses integradas para idle/run (aún provisionales) |
+| Validación Godot del puente y runtime | Workflow + smoke de sprites | ✅ Verde, 10 estados cargados |
+| Sprites PNG piloto | Dos atlas PNG en rama | ✅ 15 poses integradas en 10 estados (aún provisionales) |
 | Sprites PNG finales P0 | Revisión de arte y cobertura completa | ❌ No existen |
 | `SpriteFrames` final | Árbol Git de rama | ❌ No existe |
 | APK con protagonista rediseñado | Acciones de la rama | ⏳ No generada ni probada |
