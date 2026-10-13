@@ -10,7 +10,8 @@ const FRAME_COUNTS := {
 	&"jump_fall": 3,
 	&"land_light": 3,
 	&"attack_light": 6,
-	&"hit_light": 4
+	&"hit_light": 4,
+	&"dodge": 4
 }
 
 const DURATIONS := {
@@ -22,7 +23,8 @@ const DURATIONS := {
 	&"jump_fall": 12,
 	&"land_light": 8,
 	&"attack_light": 18,
-	&"hit_light": 14
+	&"hit_light": 14,
+	&"dodge": 11
 }
 
 static func drawing_index(state: StringName, state_tick: int) -> int:
@@ -104,6 +106,14 @@ static func pose(state: StringName, drawing: int) -> Dictionary:
 				{"bob":0.0,"lean":0.02,"crouch":0.0,"sword":-0.12,"coat":-2.0,"reach":1.0}
 			]
 			return poses[clampi(drawing,0,5)]
+		&"dodge":
+			var dodge_pose := [
+				{"bob":2.0,"lean":0.31,"crouch":13.0,"sword":-0.26,"coat":-12.0,"stride":5.0},
+				{"bob":2.0,"lean":0.40,"crouch":16.0,"sword":-0.19,"coat":-18.0,"stride":13.0},
+				{"bob":0.0,"lean":0.27,"crouch":11.0,"sword":-0.20,"coat":-16.0,"stride":9.0},
+				{"bob":0.0,"lean":0.05,"crouch":3.0,"sword":-0.22,"coat":-3.0,"stride":0.0}
+			]
+			return dodge_pose[clampi(drawing, 0, dodge_pose.size() - 1)]
 		&"hit_light":
 			var poses := [
 				{"bob":0.0,"lean":-0.22,"crouch":3.0,"sword":-0.05,"coat":8.0},
