@@ -60,16 +60,19 @@ func _run_test() -> void:
 		if not bridge.configure(state, 0, -1.0) or not sprite.flip_h:
 			_fail("Left orientation failed for " + str(state))
 			return
-	if not bridge.configure(&"attack_light", 5, 1.0):
-		_fail("Attack frame visual failed")
+	if not bridge.configure(&"attack_light", 2, 1.0) or sprite.frame != 1:
+		_fail("Slash must be visible during contact drawing")
 		return
-	if not bridge.configure(&"attack_light", 5, -1.0):
+	if not bridge.configure(&"attack_light", 5, 1.0) or sprite.frame != 0:
+		_fail("Slash must be gone during recovery")
+		return
+	if not bridge.configure(&"attack_light", 2, -1.0) or not sprite.flip_h:
 		_fail("Mirrored attack visual failed")
 		return
 	if bridge.configure(&"nonexistent_p0_state", 0, 1.0):
 		_fail("Unknown art state must use procedural fallback")
 		return
-	print("P0.3 art smoke: PASS (10 states, 15 padded/root-aligned frames, mirrored attack)")
+	print("P0.3 art smoke: PASS (10 states, 15 padded/root-aligned frames, contact-timed mirrored attack)")
 	quit(0)
 
 func _fail(message: String) -> void:
