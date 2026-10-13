@@ -83,6 +83,7 @@ func _physics_process(delta: float) -> void:
 
 	if now < _dodge_until:
 		move_and_slide()
+		animation_controller.tick(is_on_floor(), velocity)
 		_update_visual(delta)
 		return
 
@@ -205,6 +206,7 @@ func _try_dodge(direction: float, now: float) -> void:
 	else:
 		facing = sign(dodge_direction)
 
+	animation_controller.start_dodge()
 	velocity.x = dodge_direction * dodge_speed
 	velocity.y = 0.0
 	var duration_bonus := 0.05 if progression.has_skill(&"cunning_step") else 0.0
