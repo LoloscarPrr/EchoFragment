@@ -314,8 +314,13 @@ func _spawn_projectile(scene: PackedScene, damage: int, speed: float, knockback:
 	projectile.configure(facing, damage, speed, knockback, global_position)
 
 func _update_visual(delta: float) -> void:
+	var visual_from_art := false
+	if is_instance_valid(art_bridge):
+		visual_from_art = art_bridge.configure(animation_controller.state, animation_controller.drawing_index(), facing)
 	if is_instance_valid(proxy_visual):
-		proxy_visual.configure(animation_controller.state, animation_controller.state_progress(), facing, animation_controller.drawing_index())
+		proxy_visual.visible = not visual_from_art
+		if not visual_from_art:
+			proxy_visual.configure(animation_controller.state, animation_controller.state_progress(), facing, animation_controller.drawing_index())
 	if is_instance_valid(art_bridge):
 		art_bridge.configure(animation_controller.state, animation_controller.drawing_index(), facing)
 	if absf(velocity.x) > 15.0 and is_on_floor():
