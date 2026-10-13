@@ -1,54 +1,78 @@
 class_name ProtagonistArtBridge
 extends Node2D
 
-## P0 asset bridge. A real sprite atlas can replace procedural frames state by
-## state, without changing movement, combat, hitboxes, or input handling.
-const SHEET_PATH := "res://assets/characters/portador_eco/portador_idle_run_atlas.png"
-const CELL_SIZE := Vector2(88, 94)
-const ANIMATION_RANGES := {
+## Multi-atlas visual bridge. Physics, input and combat remain in Player.gd.
+## If art is missing or a state is not ready, Player shows its procedural art.
+const IDLE_RUN_ATLAS := "res://assets/characters/portador_eco/portador_idle_run_atlas.png"
+const MOTION_ATLAS := "res://assets/characters/portador_eco/portador_p0_motion_atlas.png"
+const IDLE_RUN_CELL := Vector2i(88, 94)
+const MOTION_CELL := Vector2i(120, 108)
+const IDLE_RUN_RANGES := {
 	&"idle_ready": Vector2i(0, 2),
 	&"run_forward": Vector2i(2, 3)
+}
+# Absolute frame index and number of frames in the motion atlas (7 columns).
+const MOTION_RANGES := {
+	&"jump_start": Vector2i(0, 1),
+	&"jump_rise": Vector2i(1, 2),
+	&"jump_apex": Vector2i(3, 1),
+	&"jump_fall": Vector2i(4, 2),
+	&"land_light": Vector2i(6, 2),
+	&"attack_light": Vector2i(8, 4),
+	&"hit_light": Vector2i(12, 2),
+	&"dodge": Vector2i(14, 3)
 }
 
 var has_art := false
 var _sprite: AnimatedSprite2D
 
 func _ready() -> void:
-	if not ResourceLoader.exists(SHEET_PATH):
-		return
-	var texture := load(SHEET_PATH) as Texture2D
-	if texture == null:
-		push_warning("EchoFragment P0: invalid sprite atlas; procedural visuals will remain active.")
-		return
-	var required_width := int(CELL_SIZE.x) * 5
-	if texture.get_width() < required_width or texture.get_height() < int(CELL_SIZE.y):
-		push_warning("EchoFragment P0: unexpected atlas dimensions; procedural visuals will remain active.")
-		return
-
 	var frames := SpriteFrames.new()
 	if frames.has_animation(&"default"):
 		frames.remove_animation(&"default")
-	for state in ANIMATION_RANGES:
-		var part: Vector2i = ANIMATION_RANGES[state]
-		frames.add_animation(state)
-		frames.set_animation_loop(state, true)
-		frames.set_animation_speed(state, 10.0)
-		for index in range(part.y):
-			var tile := AtlasTexture.new()
-			tile.atlas = texture
-			tile.region = Rect2(float(part.x + index) * CELL_SIZE.x, 0.0, CELL_SIZE.x, CELL_SIZE.y)
-			tile.filter_clip = true
-			frames.add_frame(state, tile)
+	_import_sheet(frames, IDLE_RUN_ATLAS, IDLE_RUN_CELL, 5, IDLE_RUN_RANGES)
+	_import_sheet(frames, MOTION_ATLAS, MOTION_CELL, 7, MOTION_RANGES)
+	if frames.get_animation_names().is_empty():
+		return
 	_sprite = AnimatedSprite2D.new()
 	_sprite.sprite_frames = frames
 	_sprite.centered = true
 	_sprite.offset = Vector2(0.0, -2.0)
+	_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_sprite.visible = false
 	add_child(_sprite)
 	has_art = true
 
-## Returns true if this particular state has finished sprites, allowing
-## the procedural renderer to remain active for jumping, attacks, and dodge.
+func _import_sheet(frames: SpriteFrames, path: String, cell: Vector2i, columns: int, ranges: Dictionary) -> void:
+	if not ResourceLoader.exists(path):
+		return
+	var texture := load(path) as Texture2D
+	if texture == null:
+		push_warning("EchoFragment P0: unsupported visual texture: " + path)
+		return
+	for key in ranges.keys():
+		var state: StringName = key
+		var part: Vector2i = ranges[key]
+		var rightmost: int = mini(columns, part.x + part.y)
+		var last_index: int = part.x + part.y - 1
+		if last_index < 0 or rightmost <= 0:
+			continue
+		var last_row: int = last_index / columns
+		if texture.get_width() < columns * cell.x or texture.get_height() < (last_row + 1) * cell.y:
+			push_warning("EchoFragment P0: truncated atlas: " + path)
+			continue
+		frames.add_animation(state)
+		frames.set_animation_loop(state, state == &"idle_ready" or state == &"run_forward" or state == &"jump_rise" or state == &"jump_fall")
+		frames.set_animation_speed(state, 10.0)
+		for i in range(part.y):
+			var index: int = part.x + i
+			var tile := AtlasTexture.new()
+			tile.atlas = texture
+			tile.region = Rect2(Vector2i((index % columns) * cell.x, (index / columns) * cell.y), cell)
+			tile.filter_clip = true
+			frames.add_frame(state, tile)
+
+## Returns true if a valid illustration exists for this specific state.
 func configure(state: StringName, drawing_index: int, facing: float) -> bool:
 	if not has_art or not is_instance_valid(_sprite):
 		return false
@@ -56,14 +80,14 @@ func configure(state: StringName, drawing_index: int, facing: float) -> bool:
 	if not frames.has_animation(state):
 		_sprite.visible = false
 		return false
-	var frame_count := frames.get_frame_count(state)
-	if frame_count <= 0:
+	var count: int = frames.get_frame_count(state)
+	if count <= 0:
 		_sprite.visible = false
 		return false
-	var nominal_count: int = int(P0FrameLibrary.FRAME_COUNTS.get(state, frame_count))
-	var mapped_index := clampi(int(floor(float(drawing_index) * frame_count / float(maxi(1, nominal_count)))), 0, frame_count - 1)
+	var nominal: int = int(P0FrameLibrary.FRAME_COUNTS.get(state, count))
+	var mapped: int = clampi(int(floor(float(drawing_index) * count / float(maxi(1, nominal)))), 0, count - 1)
 	_sprite.animation = state
-	_sprite.frame = mapped_index
+	_sprite.frame = mapped
 	_sprite.flip_h = facing < 0.0
 	_sprite.visible = true
 	return true
