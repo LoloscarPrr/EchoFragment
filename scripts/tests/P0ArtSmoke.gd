@@ -46,6 +46,11 @@ func _run_test() -> void:
 		if sprite.sprite_frames.get_frame_count(state) != int(EXPECTED[state]):
 			_fail("Wrong frame count for " + str(state))
 			return
+		for frame_index in range(int(EXPECTED[state])):
+			var frame_texture: Texture2D = sprite.sprite_frames.get_frame_texture(state, frame_index)
+			if frame_texture.get_width() != 160 or frame_texture.get_height() != 140:
+				_fail("Frame padding or sizing mismatch for " + str(state))
+				return
 		if not bridge.configure(state, 0, 1.0):
 			_fail("Could not configure state: " + str(state))
 			return
@@ -55,10 +60,16 @@ func _run_test() -> void:
 		if not bridge.configure(state, 0, -1.0) or not sprite.flip_h:
 			_fail("Left orientation failed for " + str(state))
 			return
+	if not bridge.configure(&"attack_light", 5, 1.0):
+		_fail("Attack frame visual failed")
+		return
+	if not bridge.configure(&"attack_light", 5, -1.0):
+		_fail("Mirrored attack visual failed")
+		return
 	if bridge.configure(&"nonexistent_p0_state", 0, 1.0):
 		_fail("Unknown art state must use procedural fallback")
 		return
-	print("P0 runtime art smoke: PASS (10 states, 15 unique pilot drawings)")
+	print("P0.3 art smoke: PASS (10 states, 15 padded/root-aligned frames, mirrored attack)")
 	quit(0)
 
 func _fail(message: String) -> void:
