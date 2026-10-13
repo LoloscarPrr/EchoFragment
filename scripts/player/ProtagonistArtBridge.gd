@@ -6,8 +6,8 @@ extends Node2D
 const SHEET_PATH := "res://assets/characters/portador_eco/portador_idle_run_atlas.png"
 const CELL_SIZE := Vector2(88, 94)
 const ANIMATION_RANGES := {
-	&"idle_ready": Vector2i(0, 3),
-	&"run_forward": Vector2i(3, 5)
+	&"idle_ready": Vector2i(0, 2),
+	&"run_forward": Vector2i(2, 3)
 }
 
 var has_art := false
@@ -20,7 +20,7 @@ func _ready() -> void:
 	if texture == null:
 		push_warning("EchoFragment P0: invalid sprite atlas; procedural visuals will remain active.")
 		return
-	var required_width := int(CELL_SIZE.x) * 8
+	var required_width := int(CELL_SIZE.x) * 5
 	if texture.get_width() < required_width or texture.get_height() < int(CELL_SIZE.y):
 		push_warning("EchoFragment P0: unexpected atlas dimensions; procedural visuals will remain active.")
 		return
