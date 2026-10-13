@@ -30,6 +30,10 @@ func tick(is_grounded: bool, velocity: Vector2) -> void:
 		state_tick += 1
 		_was_grounded = is_grounded
 		return
+	if state == &"dodge" and state_tick < 11:
+		state_tick += 1
+		_was_grounded = is_grounded
+		return
 	if state == &"jump_start" and state_tick < 6:
 		state_tick += 1
 		_was_grounded = is_grounded
@@ -80,6 +84,9 @@ func start_light_attack() -> void:
 func start_light_hit() -> void:
 	set_state(&"hit_light")
 
+func start_dodge() -> void:
+	set_state(&"dodge")
+
 func light_attack_active() -> bool:
 	return state == &"attack_light" and state_tick >= 5 and state_tick <= 7
 
@@ -113,6 +120,7 @@ func _duration_for(value: StringName) -> int:
 		&"land_light": return 8
 		&"attack_light": return 18
 		&"hit_light": return 14
+		&"dodge": return 11
 	return 1
 
 func _update_buffers() -> void:
