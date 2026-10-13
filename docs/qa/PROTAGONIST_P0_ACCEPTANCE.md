@@ -79,6 +79,14 @@ Para cada estado, exigir movimiento o pose diferenciada, frames ordenados, pivot
 - **Pendientes bloqueantes:** limpiar/elaborar secuencias con más dibujos reales, corregir alineación anatómica/pivotes y efectos de ataque, comprobar rendimiento y controles sobre Android, y generar APK de hito cuando exista un salto visual claro. **No declarar P0 aprobado**.
 - **Rama estable:** `main` sigue en v0.21, sin editar.
 
+## Avance P0.3 — 13 de octubre de 2026
+- **Objetivo:** reducir los cortes del efecto de espada y los cambios bruscos de posición reportados tras las primeras animaciones GIF.
+- **Normalización de poses:** `ProtagonistArtBridge.gd` recompone ambas hojas PNG en celdas RGBA transparentes de **160 × 140 px**, con anclas de pie por dibujo y márgenes exteriores.
+- **Ataque:** el corte del Eco se dibuja como trazo independiente del rectángulo del sprite, de modo que no queda limitado por la región del atlas; aparece con `attack_light` dibujo 2 (ventana de contacto), no durante la recuperación. El arte original de la espada **todavía necesita repintarse** para una P1 profesional.
+- **Pruebas añadidas:** la prueba de Godot comprueba 10 estados, 15 poses cargadas, orientación bilateral, margen transparente en los cuatro lados de cada frame y sincronía del ataque.
+- **Alcance limitado:** esto corrige el montaje técnico y el efecto, no añade nuevos dibujos definitivos ni garantiza una animación fluida en dispositivo.
+- **Siguiente objetivo tras validar CI:** continuar la composición del escenario Valle Gris y preparar un hito Android separado de la estable v0.21. No dar por aprobado el P0 hasta evidencia en teléfono.
+
 ## Diagnóstico actual resumido
 | Elemento | Comprobación | Resultado |
 |---|---|---|
