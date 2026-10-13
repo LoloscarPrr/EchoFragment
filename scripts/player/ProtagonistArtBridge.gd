@@ -35,6 +35,7 @@ func _ready() -> void:
 	if frames.get_animation_names().is_empty():
 		return
 	_sprite = AnimatedSprite2D.new()
+	_sprite.name = "P0ArtSprite"
 	_sprite.sprite_frames = frames
 	_sprite.centered = true
 	_sprite.offset = Vector2(0.0, -2.0)
