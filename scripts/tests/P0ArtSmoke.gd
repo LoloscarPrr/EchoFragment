@@ -51,6 +51,15 @@ func _run_test() -> void:
 			if frame_texture.get_width() != 160 or frame_texture.get_height() != 140:
 				_fail("Frame padding or sizing mismatch for " + str(state))
 				return
+			var padded: Image = frame_texture.get_image()
+			for edge_x in range(160):
+				if padded.get_pixel(edge_x, 0).a > 0.1 or padded.get_pixel(edge_x, 139).a > 0.1:
+					_fail("Top/bottom edge clipped for " + str(state))
+					return
+			for edge_y in range(140):
+				if padded.get_pixel(0, edge_y).a > 0.1 or padded.get_pixel(159, edge_y).a > 0.1:
+					_fail("Left/right edge clipped for " + str(state))
+					return
 		if not bridge.configure(state, 0, 1.0):
 			_fail("Could not configure state: " + str(state))
 			return
