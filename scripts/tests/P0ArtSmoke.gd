@@ -35,7 +35,7 @@ func _run_test() -> void:
 	if not is_instance_valid(bridge) or not bridge.has_art:
 		_fail("P0 SpriteFrames were not imported at runtime")
 		return
-	var sprite: AnimatedSprite2D = bridge.get_node_or_null("AnimatedSprite2D")
+	var sprite: AnimatedSprite2D = bridge.get_node_or_null("P0ArtSprite")
 	if sprite == null:
 		_fail("P0 art bridge has no AnimatedSprite2D")
 		return
