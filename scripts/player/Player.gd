@@ -410,9 +410,7 @@ func _process_animation_combat() -> void:
 		return
 
 	_sword_hit_committed = true
-	if is_instance_valid(combat_effects):
-		combat_effects.play_slash(facing)
-
+	# No procedural sword-sweep overlay; damage timing stays unchanged.
 	var hit_count := hitbox.strike(global_position)
 	if hit_count > 0:
 		if is_instance_valid(combat_effects):
