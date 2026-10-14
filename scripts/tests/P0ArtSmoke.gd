@@ -70,10 +70,10 @@ func _run_test() -> void:
 			_fail("Left orientation failed for " + str(state))
 			return
 	if not bridge.configure(&"attack_light", 2, 1.0) or sprite.frame != 1:
-		_fail("Slash must be visible during contact drawing")
+		_fail("Contact-time blade pose must be selected")
 		return
 	if not bridge.configure(&"attack_light", 5, 1.0) or sprite.frame != 0:
-		_fail("Slash must be gone during recovery")
+		_fail("Recovery must reset to the base attack pose")
 		return
 	if not bridge.configure(&"attack_light", 2, -1.0) or not sprite.flip_h:
 		_fail("Mirrored attack visual failed")
@@ -81,7 +81,21 @@ func _run_test() -> void:
 	if bridge.configure(&"nonexistent_p0_state", 0, 1.0):
 		_fail("Unknown art state must use procedural fallback")
 		return
-	print("P0.3 art smoke: PASS (10 states, 15 padded/root-aligned frames, contact-timed mirrored attack)")
+	# Regression: the improvised curved Paint-style sword trail must stay out.
+	var bridge_source := FileAccess.get_file_as_string("res://scripts/player/ProtagonistArtBridge.gd")
+	var backup_source := FileAccess.get_file_as_string("res://scripts/player/ProtagonistProxyVisual.gd")
+	var combat_source := FileAccess.get_file_as_string("res://scripts/player/P0CombatEffects.gd")
+	var player_source := FileAccess.get_file_as_string("res://scripts/player/Player.gd")
+	if bridge_source.contains("draw_polyline(trail") or backup_source.contains("var arc_alpha :="):
+		_fail("Legacy procedural sword arc has returned")
+		return
+	if combat_source.contains("func play_slash(") or player_source.contains("combat_effects.play_slash"):
+		_fail("Legacy sword sweep effect is still invoked")
+		return
+	if not combat_source.contains("func play_impact(") or not player_source.contains("hitbox.strike(global_position)"):
+		_fail("Hit confirmation feedback or gameplay strike was removed")
+		return
+	print("P0.4.1 art smoke: PASS (10 states, 15 frames, no placeholder slash, hit feedback retained)")
 	quit(0)
 
 func _fail(message: String) -> void:
