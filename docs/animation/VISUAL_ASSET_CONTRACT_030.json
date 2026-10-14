@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "project": "EchoFragment",
+  "milestone": "0.30",
+  "protagonist": "Portador del Eco",
+  "active_renderer": "sprite_pilot_with_per_state_procedural_fallback",
+  "preferred_asset_format": "png_rgba_transparent",
+  "animation_contract": {
+    "simulation_hz": 60,
+    "render_target_fps": 60,
+    "world_origin": "existing Player CharacterBody2D origin; root/pivot anchored in world",
+    "art_scope": "P0 pilot: 15 real drawings (5 idle/run + 10 action poses), not final cleaned production sprites",
+    "states": [
+      "idle_ready",
+      "run_forward",
+      "jump_start",
+      "jump_rise",
+      "jump_apex",
+      "jump_fall",
+      "land_light",
+      "attack_light",
+      "hit_light",
+      "dodge"
+    ],
+    "next_states": [
+      "attack_medium",
+      "attack_heavy",
+      "air_attack"
+    ]
+  },
+  "safe_integration": [
+    "keep hitboxes separate from art",
+    "keep procedural fallback",
+    "test narration touch UI",
+    "preserve applicationId and signature"
+  ],
+  "asset_paths": {
+    "protagonist": "assets/characters/portador_eco/",
+    "world": "assets/world/valle_gris/",
+    "enemies": "assets/enemies/",
+    "effects": "assets/fx/"
+  },
+  "pilot_assets": [
+    {
+      "path": "assets/characters/portador_eco/portador_idle_run_atlas.png",
+      "cell": [
+        88,
+        94
+      ],
+      "columns": 5,
+      "poses": 5,
+      "states": {
+        "idle_ready": 2,
+        "run_forward": 3
+      }
+    },
+    {
+      "path": "assets/characters/portador_eco/portador_p0_motion_atlas.png",
+      "cell": [
+        96,
+        86
+      ],
+      "columns": 5,
+      "poses": 10,
+      "states": {
+        "jump_start": 1,
+        "jump_rise": 1,
+        "jump_apex": 1,
+        "jump_fall": 1,
+        "land_light": 1,
+        "attack_light": 2,
+        "hit_light": 1,
+        "dodge": 2
+      }
+    }
+  ],
+  "validation": {
+    "last_runtime_smoke_commit": "714a035f92a69126babc1c6daac8ac5cba073afa",
+    "last_runtime_smoke_url": "https://github.com/LoloscarPrr/EchoFragment/actions/runs/38336457216",
+    "runtime_result": "success",
+    "android_device_test": "pending"
+  }
+}

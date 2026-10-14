@@ -33,6 +33,7 @@ var inventory := Inventory.new()
 var progression := Progression.new()
 var animation_controller := CharacterAnimationController.new()
 var proxy_visual: ProtagonistProxyVisual
+var art_bridge: ProtagonistArtBridge
 var combat_effects: P0CombatEffects
 var _sword_hit_committed := false
 var _hitstop_active := false
@@ -57,6 +58,9 @@ func _ready() -> void:
 	_visual_base_scale = visual.scale
 	proxy_visual = ProtagonistProxyVisual.new()
 	add_child(proxy_visual)
+	art_bridge = ProtagonistArtBridge.new()
+	add_child(art_bridge)
+	proxy_visual.visible = not art_bridge.has_art
 	combat_effects = P0CombatEffects.new()
 	add_child(combat_effects)
 	visual.visible = false
@@ -79,6 +83,7 @@ func _physics_process(delta: float) -> void:
 
 	if now < _dodge_until:
 		move_and_slide()
+		animation_controller.tick(is_on_floor(), velocity)
 		_update_visual(delta)
 		return
 
@@ -201,6 +206,7 @@ func _try_dodge(direction: float, now: float) -> void:
 	else:
 		facing = sign(dodge_direction)
 
+	animation_controller.start_dodge()
 	velocity.x = dodge_direction * dodge_speed
 	velocity.y = 0.0
 	var duration_bonus := 0.05 if progression.has_skill(&"cunning_step") else 0.0
@@ -310,8 +316,15 @@ func _spawn_projectile(scene: PackedScene, damage: int, speed: float, knockback:
 	projectile.configure(facing, damage, speed, knockback, global_position)
 
 func _update_visual(delta: float) -> void:
+	var visual_from_art := false
+	if is_instance_valid(art_bridge):
+		visual_from_art = art_bridge.configure(animation_controller.state, animation_controller.drawing_index(), facing)
 	if is_instance_valid(proxy_visual):
-		proxy_visual.configure(animation_controller.state, animation_controller.state_progress(), facing, animation_controller.drawing_index())
+		proxy_visual.visible = not visual_from_art
+		if not visual_from_art:
+			proxy_visual.configure(animation_controller.state, animation_controller.state_progress(), facing, animation_controller.drawing_index())
+	if is_instance_valid(art_bridge):
+		art_bridge.configure(animation_controller.state, animation_controller.drawing_index(), facing)
 	if absf(velocity.x) > 15.0 and is_on_floor():
 		var bob := sin(Time.get_ticks_msec() * 0.018) * 2.0
 		visual.position.y = move_toward(visual.position.y, bob, 40.0 * delta)
@@ -397,9 +410,7 @@ func _process_animation_combat() -> void:
 		return
 
 	_sword_hit_committed = true
-	if is_instance_valid(combat_effects):
-		combat_effects.play_slash(facing)
-
+	# No procedural sword-sweep overlay; damage timing stays unchanged.
 	var hit_count := hitbox.strike(global_position)
 	if hit_count > 0:
 		if is_instance_valid(combat_effects):

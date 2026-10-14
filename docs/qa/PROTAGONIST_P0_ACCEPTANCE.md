@@ -1,0 +1,105 @@
+# EchoFragment — Checklist de aprobación P0 del Portador del Eco
+
+**Revisión inicial:** 2026-10-12 · **hito objetivo:** 0.30 · **alcance:** protagonista jugable P0, NO todo Valle Gris.
+**Estado de aprobación:** ⛔ NO APROBADO — falta arte jugable real y su validación en Android.
+**Fuente funcional estable:** v0.21 en `main`. **Rama de trabajo:** `feature/valle-gris-visual-030`.
+
+## Cómo se usa
+- `[x]`: comprobación documentada y con evidencia. `[ ]`: pendiente / sin evidencia. No marcar aprobada una función solo porque existe código.
+- Tres pruebas obligatorias: **A** assets revisados, **C** Godot/CI y **M** gameplay en móvil.
+- Un fallo de clase **BLOQUEANTE** prohíbe declarar el P0 aprobado. La última aprobación requiere revisión de dirección de arte y prueba en un móvil Android real.
+- El documento registra la situación inicial; volver a evaluarlo tras integrar cada lote, adjuntando commit, capturas o video y run de CI.
+
+## A — Arte canónico y producción (BLOQUEANTE)
+- [ ] **A01** Hoja madre de frente, lateral derecha e izquierda (o reglas explícitas de espejo), 3/4, escala de juego y paleta revisada. Evidencia: lámina aprobada y archivos originales.
+- [ ] **A02** Silueta legible al tamaño final en pantalla Android, sobre fondo oscuro y claro, sin confundir arma y extremidades. Evidencia: capturas 100% sin ampliación.
+- [ ] **A03** Elementos invariantes presentes: cabello negro, armadura oscura, dos faldones granate, espada recta derecha, marca Eco brazo izquierdo y broche circular roto. Evidencia: comparación con hoja maestra.
+- [ ] **A04** Sprites PNG RGBA realmente creados (sin fondo, con pivote consistente, tamaño de canvas documentado, espada sin clipping). Evidencia: archivos en `assets/characters/portador_eco/`.
+- [ ] **A05** Recurso `SpriteFrames` válido en `assets/characters/portador_eco/portador_eco_frames.tres`, con secuencias reales (no una misma pose repetida). Evidencia: recursos cargan correctamente.
+
+## B — Cobertura de animaciones P0 (BLOQUEANTE)
+Para cada estado, exigir movimiento o pose diferenciada, frames ordenados, pivote constante y continuidad de transición. Referencia: `docs/animation/P0_PILOT_MANIFEST.json` (duraciones y dibujos planificados, NO arte terminado).
+
+| ID | Estado | Dibujos piloto previstos | Resultado visual | Estado |
+|---|---|---:|---|---|
+| B01 | `idle_ready` | 10 | Bucle vivo, sin salto al reiniciar | [ ] |
+| B02 | `run_forward` | 10 | Piernas/torso fluidos y suelo sin patinaje perceptible | [ ] |
+| B03 | `jump_start` | 3 | Compresión corta sin retrasar físicamente el despegue | [ ] |
+| B04 | `jump_rise` | 4 | Postura de ascenso, tela responde a gravedad | [ ] |
+| B05 | `jump_apex` | 2 | Punto alto legible, sin congelar física | [ ] |
+| B06 | `jump_fall` | 3 | Postura distinta a subida, prepara recepción | [ ] |
+| B07 | `land_light` | 3 | Recepción con peso y transición inmediata permitida | [ ] |
+| B08 | `attack_light` | 6 | Anticipación, impacto y recuperación; espada sigue hitbox | [ ] |
+| B09 | `hit_light` | 4 | Retroceso perceptible sin distorsionar posición del personaje | [ ] |
+| B10 | `dodge` | **por fijar** | Silueta distinguible de carrera; coincide con ventana real de esquiva | [ ] |
+
+**Deuda identificada:** el manifiesto piloto actual solo incluye 9 estados: `dodge` no está definido en el manifiesto, `P0FrameLibrary.gd` ni `CharacterAnimationController.gd` como animación independiente. La esquiva ya tiene estado de animación propio y dos dibujos piloto integrados, pero faltan las poses definitivas y pruebas visuales. El manifiesto original de 9 estados sigue siendo una referencia histórica, no la cobertura real actual.
+
+## C — Integración técnica y regresión (BLOQUEANTE)
+- [x] **C01** El puente opcional `ProtagonistArtBridge.gd` existe y conserva fallback si falta `SpriteFrames`. Evidencia: commit `48e2cf59`; inspección del código.
+- [x] **C02** Godot Check del código base del puente pasó. Evidencia: [CI de la rama](https://github.com/LoloscarPrr/EchoFragment/actions/runs/38165211050). **No prueba frames ausentes.**
+- [ ] **C03** Recurso SpriteFrames definitivo importa sin errores ni warnings en Godot.
+- [ ] **C04** Todas las animaciones P0 se reproducen sin nombres faltantes, offsets inconsistentes, cambio de escala, clipping o pose incorrecta al mirar hacia la izquierda.
+- [ ] **C05** La visual no altera `CharacterBody2D`, `CollisionShape2D`, hitboxes, daños, velocidad, gravedad, aguante ni ventanas de invulnerabilidad.
+- [ ] **C06** Golpes visuales sincronizados con el frame activo y el impacto real. Sin golpes dobles al repetir frames.
+- [ ] **C07** Cambio de estados correcto: quieto → correr → saltar → caer → aterrizar; correr → atacar; daño → recuperación; dirección derecha ↔ izquierda.
+- [ ] **C08** Android exporta una APK instalable sobre v0.21: package `com.echofragment.playtest` inalterado, firma compatible y `versionCode` incrementado.
+- [ ] **C09** Godot Check y Android Playtest APK final pasan para *exactamente el mismo commit* que se entrega. Adjuntar enlaces a runs.
+
+## D — Prueba real en teléfono (BLOQUEANTE)
+- [x] **D01** Versión base 0.21: usuario confirmó que el joystick funciona. Evidencia: prueba reportada, NO equivale a aprobación de P0.
+- [ ] **D02** Joystick + salto hacia delante y detrás; mantener eje horizontal durante toda la trayectoria.
+- [ ] **D03** Joystick + ataque y joystick + esquiva, simultáneamente, sin toques perdidos.
+- [ ] **D04** Abrir evento del viajero herido, seleccionar respuesta, mostrar resultado y continuar; botones táctiles disponibles.
+- [ ] **D05** Inventario, habilidades, equipar, recibir daño, eliminar enemigo y combate contra Caballero Fragmentado sin regresión.
+- [ ] **D06** Probar al menos 3 minutos de juego, cambio de orientación/dirección de movimiento y regreso a partida; sin crash, bloqueo de pantalla ni congelamientos notorios.
+- [ ] **D07** Rendimiento documentado en teléfono (FPS aproximados y tirones observables), sin sostener un resultado inventado; referencia ideal 60 FPS, evaluar si requiere optimización.
+- [ ] **D08** Captura de juego y video corto del protagonista ejecutando idle/run/jump/attack/dodge en tamaño real.
+
+## E — Aprobación artística y entrega (BLOQUEANTE)
+- [ ] **E01** Comparativa 0.21 versus nuevo P0 confirma mejora visible del protagonista; ya no se ve como placeholder.
+- [ ] **E02** Se conserva el lenguaje de identidad del Eco (negro, granate, rojo), no copia gráfica de franquicias externas.
+- [ ] **E03** Se entrega APK Android directa (no ZIP) tras verificar archivo real, versión y CI.
+- [ ] **E04** Dirección de arte aprueba silueta y movimiento; usuario confirma experiencia en móvil.
+- [ ] **E05** Registro de commit, evidencias, limitaciones y fallos restantes, y decisión final: APROBADO / REQUIERE CORRECCIÓN.
+
+## Avance comprobado P0.1 — 12 de octubre de 2026
+- **Arte piloto creado:** el archivo `assets/characters/portador_eco/portador_idle_run_atlas.png` existe realmente, se verificó su contenido binario mediante SHA de Git y contiene **5 poses** con transparencia en celdas de **88 × 94**: **2 de idle** y **3 de run**. Se trata de una primera extracción/limpieza del concepto, todavía no de sprites finales aprobados.
+- **Integración:** `ProtagonistArtBridge.gd` crea automáticamente `SpriteFrames` desde el PNG para `idle_ready` y `run_forward`. `Player.gd` utiliza arte solo en esos estados; conserva el renderer procedural en salto, ataque, golpe y esquiva. La física y los controles no fueron modificados.
+- **Validación técnica:** [Godot Check aprobado para commit `d9310f2`](https://github.com/LoloscarPrr/EchoFragment/actions/runs/38333258202).
+- **Aún NO aprobado:** faltan más frames y limpieza fina de silueta, sprites finales de 8 estados adicionales, prueba visual en Android y build del hito; no marcar los checks A04/A05/B como completos.
+- **Siguiente lote:** refinar las poses en movimiento y completar `jump_start`, `jump_rise`, `jump_apex`, `jump_fall` y `land_light` antes de entregar una nueva APK de evaluación.
+
+## Avance comprobado P0.2 — 12 de octubre de 2026
+- **Arte adicional integrado:** `assets/characters/portador_eco/portador_p0_motion_atlas.png`, PNG con transparencia, **10 dibujos piloto** nuevos, celdas 96 × 86 y cinco columnas. Fue comparado por SHA Git con los bytes locales de referencia para garantizar integridad del PNG.
+- **Cobertura actual total:** 15 dibujos piloto en 10 estados: reposo (2), correr (3), iniciar salto (1), subir (1), cima (1), caer (1), aterrizaje (1), ataque ligero (2), recibir daño (1) y esquivar (2). Estos números son **inferiores** a los dibujos finales previstos; no se consideran animaciones aprobadas todavía.
+- **Esquiva:** `CharacterAnimationController.gd` implementa el estado `dodge` de 11 ticks; `Player.gd` continúa avanzando la animación durante la ventana de esquiva; `P0FrameLibrary.gd` añade fallback procedural específico.
+- **Integración:** `ProtagonistArtBridge.gd` admite dos atlas independientes, direcciones derecha/izquierda y fallback para estados sin arte. Se conserva el control físico original.
+- **CI de runtime:** [Godot Check + P0 sprite runtime smoke APROBADO para commit `714a035f`](https://github.com/LoloscarPrr/EchoFragment/actions/runs/38336457216). El test cargó los 10 estados, verificó conteos de dibujos, volteo a izquierda y fallback para estados no definidos.
+- **Pendientes bloqueantes:** limpiar/elaborar secuencias con más dibujos reales, corregir alineación anatómica/pivotes y efectos de ataque, comprobar rendimiento y controles sobre Android, y generar APK de hito cuando exista un salto visual claro. **No declarar P0 aprobado**.
+- **Rama estable:** `main` sigue en v0.21, sin editar.
+
+## Avance P0.3 — 13 de octubre de 2026
+- **Objetivo:** reducir los cortes del efecto de espada y los cambios bruscos de posición reportados tras las primeras animaciones GIF.
+- **Normalización de poses:** `ProtagonistArtBridge.gd` recompone ambas hojas PNG en celdas RGBA transparentes de **160 × 140 px**, con anclas de pie por dibujo y márgenes exteriores.
+- **Ataque:** el corte del Eco se dibuja como trazo independiente del rectángulo del sprite, de modo que no queda limitado por la región del atlas; aparece con `attack_light` dibujo 2 (ventana de contacto), no durante la recuperación. El arte original de la espada **todavía necesita repintarse** para una P1 profesional.
+- **Pruebas añadidas:** la prueba de Godot comprueba 10 estados, 15 poses cargadas, orientación bilateral, margen transparente en los cuatro lados de cada frame y sincronía del ataque.
+- **Alcance limitado:** esto corrige el montaje técnico y el efecto, no añade nuevos dibujos definitivos ni garantiza una animación fluida en dispositivo.
+- **Siguiente objetivo tras validar CI:** continuar la composición del escenario Valle Gris y preparar un hito Android separado de la estable v0.21. No dar por aprobado el P0 hasta evidencia en teléfono.
+
+## Diagnóstico actual resumido
+| Elemento | Comprobación | Resultado |
+|---|---|---|
+| Jugabilidad móvil v0.21 | Confirmación del usuario | ✅ Base estable |
+| Plan P0 de 10 estados | Animaciones + manifiesto de producción actualizado | ✅ Especificados, parcialmente dibujados |
+| Estado visual de esquiva | Controlador + poses piloto | ✅ Implementado; requiere pulido y prueba móvil |
+| Puente opcional de sprites | Código en rama 0.30 | ✅ Incorporado |
+| Validación Godot del puente y runtime | Workflow + smoke de sprites | ✅ Verde, 10 estados cargados |
+| Sprites PNG piloto | Dos atlas PNG en rama | ✅ 15 poses integradas en 10 estados (aún provisionales) |
+| Sprites PNG finales P0 | Revisión de arte y cobertura completa | ❌ No existen |
+| `SpriteFrames` final | Árbol Git de rama | ❌ No existe |
+| APK con protagonista rediseñado | Acciones de la rama | ⏳ No generada ni probada |
+| **P0 aprobado** | A + B + C + D + E | **❌ NO** |
+
+## Decisión de producción
+**Siguiente tarea es producción real de arte, no otra ronda de planificación:** dibujar hoja madre y poses clave, crear el primer conjunto animado original (idle/run), integrar y verificarlo, luego completar salto/ataque/daño/esquiva. Mantener `main` en la última versión jugable hasta una integración sin regresiones.
