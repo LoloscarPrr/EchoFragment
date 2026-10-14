@@ -2,7 +2,7 @@ class_name ProtagonistArtBridge
 extends Node2D
 
 ## P0.3 sprite stabilizer. The source sheets are prototypes with very tight
-## 88/96-pixel cells: attack glows and sword tips used to touch cell borders.
+## 88/96-pixel cells: sword tips sometimes touched cell borders.
 ## Create generously padded, root-aligned frames at load time instead of
 ## displaying clipped AtlasTexture regions. This never changes collision.
 const IDLE_RUN_ATLAS := "res://assets/characters/portador_eco/portador_idle_run_atlas.png"
@@ -27,7 +27,7 @@ const MOTION_RANGES := {
 	&"dodge": Vector2i(8, 2)
 }
 ## Per-drawing approximate anatomical root (not the alpha bounding box).
-## The attack energy is deliberately NOT included in this anchor.
+## Original attack pose may contain a faint built-in glow; no procedural slash overlays.
 const IDLE_RUN_FEET := [
 	Vector2i(50, 83), Vector2i(42, 83), Vector2i(42, 82),
 	Vector2i(48, 79), Vector2i(49, 78)
@@ -41,9 +41,6 @@ const MOTION_FEET := [
 
 var has_art := false
 var _sprite: AnimatedSprite2D
-var _active_state: StringName = &""
-var _active_frame := -1
-var _facing := 1.0
 
 func _ready() -> void:
 	var frames := SpriteFrames.new()
@@ -106,16 +103,14 @@ func configure(state: StringName, drawing_index: int, facing: float) -> bool:
 	var frames := _sprite.sprite_frames
 	if not frames.has_animation(state):
 		_sprite.visible = false
-		_set_active(&"", -1, facing)
 		return false
 	var count: int = frames.get_frame_count(state)
 	if count <= 0:
 		_sprite.visible = false
-		_set_active(&"", -1, facing)
 		return false
 	var nominal: int = int(P0FrameLibrary.FRAME_COUNTS.get(state, count))
 	var mapped: int = clampi(int(floor(float(drawing_index) * count / float(maxi(1, nominal)))), 0, count - 1)
-	# The pilot has only two attack drawings; show the slash at the actual
+	# The pilot has only two attack drawings; show the blade extension at the actual
 	# contact window (P0 drawing #2), NOT at the end of recovery.
 	if state == &"attack_light" and count == 2:
 		mapped = 1 if drawing_index == 2 else 0
@@ -129,27 +124,4 @@ func configure(state: StringName, drawing_index: int, facing: float) -> bool:
 		_sprite.scale = Vector2.ONE * 1.43
 		_sprite.offset = Vector2(0.0, -8.0)
 	_sprite.visible = true
-	_set_active(state, mapped, facing)
 	return true
-
-func _set_active(state: StringName, frame: int, facing: float) -> void:
-	var new_facing := -1.0 if facing < 0.0 else 1.0
-	if _active_state == state and _active_frame == frame and _facing == new_facing:
-		return
-	_active_state = state
-	_active_frame = frame
-	_facing = new_facing
-	queue_redraw()
-
-func _draw() -> void:
-	# The attack slash is drawn outside the sprite frame, deliberately.
-	# It should never be clipped by the source atlas or sheet-cell borders.
-	if _active_state != &"attack_light" or _active_frame != 1:
-		return
-	var trail := PackedVector2Array()
-	for step in range(33):
-		var theta := lerpf(-1.60, 1.65, float(step) / 32.0)
-		trail.append(Vector2((26.0 + cos(theta) * 60.0) * _facing, -7.0 + sin(theta) * 45.0))
-	draw_polyline(trail, Color(0.88, 0.06, 0.12, 0.18), 15.0, true)
-	draw_polyline(trail, Color(0.95, 0.12, 0.19, 0.55), 6.0, true)
-	draw_polyline(trail, Color(1.0, 0.55, 0.55, 0.42), 2.0, true)
