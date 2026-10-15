@@ -22,7 +22,7 @@ func tick(is_grounded: bool, velocity: Vector2) -> void:
 	else:
 		_coyote_ticks_left = maxi(0, _coyote_ticks_left - 1)
 
-	if state == &"attack_light" and state_tick < 18:
+	if state == &"attack_light" and state_tick < TajoDelEcoTimeline.ATTACK_TICKS:
 		state_tick += 1
 		_was_grounded = is_grounded
 		return
@@ -81,13 +81,24 @@ func start_light_hit() -> void:
 	set_state(&"hit_light")
 
 func light_attack_active() -> bool:
-	return state == &"attack_light" and state_tick >= 5 and state_tick <= 7
+	return state == &"attack_light" and TajoDelEcoTimeline.is_active_tick(state_tick)
 
 func light_attack_finished() -> bool:
-	return state == &"attack_light" and state_tick >= 18
+	return state == &"attack_light" and state_tick >= TajoDelEcoTimeline.ATTACK_TICKS
 
 func drawing_index() -> int:
 	return P0FrameLibrary.drawing_index(state, state_tick)
+
+## This index belongs to the 16-frame art REFERENCE, not the 6-frame proxy.
+func attack_reference_frame_index() -> int:
+	if state != &"attack_light":
+		return -1
+	return TajoDelEcoTimeline.reference_frame_for_tick(state_tick)
+
+func attack_phase() -> StringName:
+	if state != &"attack_light":
+		return &"none"
+	return TajoDelEcoTimeline.phase_for_tick(state_tick)
 
 func state_progress() -> float:
 	var duration := _duration_for(state)
@@ -111,7 +122,7 @@ func _duration_for(value: StringName) -> int:
 		&"jump_apex": return 6
 		&"jump_fall": return 12
 		&"land_light": return 8
-		&"attack_light": return 18
+		&"attack_light": return TajoDelEcoTimeline.ATTACK_TICKS
 		&"hit_light": return 14
 	return 1
 
