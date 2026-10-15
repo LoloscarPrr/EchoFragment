@@ -393,7 +393,7 @@ func _process_animation_combat() -> void:
 		return
 
 	var tick := animation_controller.state_tick
-	if tick < 5:
+	if not TajoDelEcoTimeline.strike_is_ready(tick):
 		return
 
 	_sword_hit_committed = true
