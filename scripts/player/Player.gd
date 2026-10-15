@@ -33,6 +33,7 @@ var inventory := Inventory.new()
 var progression := Progression.new()
 var animation_controller := CharacterAnimationController.new()
 var proxy_visual: ProtagonistProxyVisual
+var canonical_visual: CanonicalProtagonistVisual
 var combat_effects: P0CombatEffects
 var _sword_hit_committed := false
 var _hitstop_active := false
@@ -57,6 +58,9 @@ func _ready() -> void:
 	_visual_base_scale = visual.scale
 	proxy_visual = ProtagonistProxyVisual.new()
 	add_child(proxy_visual)
+	canonical_visual = CanonicalProtagonistVisual.new()
+	add_child(canonical_visual)
+	proxy_visual.visible = false
 	combat_effects = P0CombatEffects.new()
 	add_child(combat_effects)
 	visual.visible = false
@@ -310,8 +314,17 @@ func _spawn_projectile(scene: PackedScene, damage: int, speed: float, knockback:
 	projectile.configure(facing, damage, speed, knockback, global_position)
 
 func _update_visual(delta: float) -> void:
+	# Use the actual canonical Portador del Eco art when wielding the sword.
+	# Other weapons retain their existing proxy until canonical poses exist.
+	var show_canonical := weapon_mode == WeaponMode.SWORD and is_instance_valid(canonical_visual)
+	if is_instance_valid(canonical_visual):
+		canonical_visual.visible = show_canonical
+		if show_canonical:
+			canonical_visual.configure(animation_controller.state, animation_controller.state_progress(), facing, animation_controller.attack_reference_frame_index())
 	if is_instance_valid(proxy_visual):
-		proxy_visual.configure(animation_controller.state, animation_controller.state_progress(), facing, animation_controller.drawing_index())
+		proxy_visual.visible = not show_canonical
+		if not show_canonical:
+			proxy_visual.configure(animation_controller.state, animation_controller.state_progress(), facing, animation_controller.drawing_index())
 	if absf(velocity.x) > 15.0 and is_on_floor():
 		var bob := sin(Time.get_ticks_msec() * 0.018) * 2.0
 		visual.position.y = move_toward(visual.position.y, bob, 40.0 * delta)
@@ -397,7 +410,9 @@ func _process_animation_combat() -> void:
 		return
 
 	_sword_hit_committed = true
-	if is_instance_valid(combat_effects):
+	# The canonical slash pose already contains its red Echo energy. Avoid
+	# layering the old generic painted arc on top of the real illustration.
+	if is_instance_valid(combat_effects) and not (is_instance_valid(canonical_visual) and canonical_visual.visible):
 		combat_effects.play_slash(facing)
 
 	var hit_count := hitbox.strike(global_position)
