@@ -48,3 +48,7 @@ func _ready() -> void:
     _rig.scale = Vector2.ONE * 2.35
     _rig.demo_cycle = true
     add_child(_rig)
+    # The optional art skin keeps provisional polygons if the eight cutout PNGs are absent.
+    var skin := PortadorRig2DTextureSkin.new()
+    skin.name = "HelmetArtSkin"
+    _rig.add_child(skin)
