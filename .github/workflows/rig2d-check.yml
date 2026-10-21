@@ -1,0 +1,27 @@
+name: Rig2D Prototype Check
+
+on:
+  push:
+    branches:
+      - feature/portador-rig2d-prototype
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  godot-rig:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Godot 4.3
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          chmod +x Godot_v4.3-stable_linux.x86_64
+      - name: Import project and verify scripts
+        run: |
+          ./Godot_v4.3-stable_linux.x86_64 --headless --path . --editor --quit
+      - name: Verify rig skeleton and poses
+        run: |
+          ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/rig2d_prototype_test.gd
