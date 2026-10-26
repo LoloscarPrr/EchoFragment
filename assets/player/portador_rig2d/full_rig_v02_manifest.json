@@ -1,0 +1,81 @@
+{
+  "version": "v0.2",
+  "project": "EchoFragment",
+  "rig_scene": "res://scenes/experiments/RigFullPreviewV02.tscn",
+  "engine": "Godot 4.3",
+  "github_branch": "feature/portador-rig2d-prototype",
+  "note": "These are Canva saved master images; not yet committed as binaries to GitHub. The script creates articulated regions from arm/leg PNGs at runtime.",
+  "assets": [
+    {
+      "slot": "helmet",
+      "required_name": "portador_head_helmet.png",
+      "saved_in_canva": "MAHZIqct19g",
+      "origin": "portador_head_helmet_v0_1.png"
+    },
+    {
+      "slot": "torso",
+      "required_name": "portador_torso_upper.png",
+      "saved_in_canva": "MAHZIrjSKvw",
+      "origin": "portador_torso_upper_v0_1.png"
+    },
+    {
+      "slot": "pelvis",
+      "required_name": "portador_pelvis_waist.png",
+      "saved_in_canva": "MAHZIpSAVpg",
+      "origin": "portador_pelvis_waist_v0_1.png"
+    },
+    {
+      "slot": "arm_R",
+      "required_name": "portador_arm_R.png",
+      "saved_in_canva": "MAHZIqspOaQ",
+      "origin": "brazo_de_caballero_con_grietas_carmesí.png"
+    },
+    {
+      "slot": "arm_L",
+      "required_name": "portador_arm_L.png",
+      "saved_in_canva": "MAHZIrWEG2g",
+      "origin": "guantelete_carmesí_del_caballero_oscuro.png"
+    },
+    {
+      "slot": "leg_R",
+      "required_name": "portador_leg_R.png",
+      "saved_in_canva": "MAHZInEGf3A",
+      "origin": "pierna_acorazada_gótica_carmesí.png"
+    },
+    {
+      "slot": "leg_L",
+      "required_name": "portador_leg_L.png",
+      "saved_in_canva": "MAHZIlIMcww",
+      "origin": "pierna_acorazada_del_caballero_oscuro.png"
+    },
+    {
+      "slot": "sword",
+      "required_name": "portador_sword.png",
+      "saved_in_canva": "MAHZIoKzY4U",
+      "origin": "espada_demoníaca_de_acero_y_fuego_carmesí.png"
+    },
+    {
+      "slot": "cape",
+      "required_name": "portador_cape.png",
+      "saved_in_canva": "MAHZIi4nuUQ",
+      "origin": "capa_carmesí_desgarrada.png"
+    }
+  ],
+  "controls": {
+    "animation_states": [
+      "idle_ready",
+      "run_forward",
+      "attack_light",
+      "dodge",
+      "jump_rise",
+      "guard"
+    ],
+    "layering": "rear cape, rear leg, rear arm, torso helmet, front leg, pelvis, front arm, sword"
+  },
+  "limitations": [
+    "Arm and leg joint separation uses Sprite2D.region_rect on full-limb source images. Permanent per-bone PNGs with joint surfaces filled in are still needed.",
+    "No integration into Player.gd/Android APK. This preview is isolated.",
+    "GitHub CI checks syntax and fallback because original binary PNG files are not yet in the branch."
+  ],
+  "next_step": "Export 9 independent original PNGs (using those exact required filenames) into res://assets/player/portador_rig2d/v02. Rotate each articulation and retouch visible seams; then wire into Player animation controller."
+}
