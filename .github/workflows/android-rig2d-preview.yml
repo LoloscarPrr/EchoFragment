@@ -58,3 +58,32 @@ jobs:
           path: build/EchoFragment-0.23-Rig2D.apk
           if-no-files-found: error
           retention-days: 30
+
+  publish-direct-apk:
+    needs: build-rig-preview
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Get signed APK without artifact ZIP
+        uses: actions/download-artifact@v4
+        with:
+          name: EchoFragment-0.23-Rig2D-APK
+          path: dist
+      - name: Publish direct APK as experimental prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          test -s dist/EchoFragment-0.23-Rig2D.apk
+          TAG="rig2d-preview-v0.23"
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/EchoFragment-0.23-Rig2D.apk --clobber --repo "$GH_REPO"
+          else
+            gh release create "$TAG" dist/EchoFragment-0.23-Rig2D.apk \
+              --repo "$GH_REPO" \
+              --target "$GITHUB_SHA" \
+              --title "EchoFragment v0.23 - Portador Rig2D experimental" \
+              --notes "APK Android de prueba. Incluye nueve imagenes reales del Portador del Eco integradas con Skeleton2D; Canva solo permitio previews de 200 px, por lo que el arte es provisional. No fusionado a main." \
+              --prerelease
+          fi
