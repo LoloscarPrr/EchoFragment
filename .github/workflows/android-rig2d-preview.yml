@@ -1,14 +1,6 @@
 name: Android Rig2D Preview v0.23
 
 on:
-  push:
-    branches:
-      - feature/portador-rig2d-prototype
-    paths:
-      - 'scripts/player/**'
-      - 'assets/player/portador_rig2d/v02/**'
-      - 'export_presets.cfg'
-      - '.github/workflows/android-rig2d-preview.yml'
   workflow_dispatch:
 
 permissions:
