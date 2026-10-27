@@ -17,8 +17,19 @@ func _run() -> void:
     rig.demo_cycle = false
     root.add_child(rig)
     check(rig.ART.size() == 9, "9 independent source images declared")
-    check(rig.missing_files.size() <= 9, "asset import state well-formed")
-    check(rig.art_loaded or rig.get_node_or_null("FallbackProvisional") != null, "missing sprites must show fallback")
+    check(rig.missing_files.is_empty(), "all 9 actual PNG files must be present")
+    check(rig.art_loaded, "actual textured rig must load, never fallback to polygon mannequin")
+    check(rig.get_node_or_null("FallbackProvisional") == null, "no polygon fallback when art exists")
+    var skeleton := rig.get_node_or_null("Armature") as Skeleton2D
+    check(skeleton != null, "textured Skeleton2D built")
+    var chest := rig.get_node_or_null("Armature/Hips/Torso/torso") as Sprite2D
+    var arm := rig.get_node_or_null("Armature/Hips/Torso/ArmRUpper/arm_R_upper") as Sprite2D
+    var blade := rig.get_node_or_null("Armature/Hips/Torso/ArmRUpper/ArmRForearm/ArmRHand/Sword/sword") as Sprite2D
+    check(chest != null and chest.texture != null, "visible torso uses imported PNG")
+    check(arm != null and arm.region_enabled and arm.region_rect.size.y > 0.0, "right upper arm has a real animated cutout")
+    check(blade != null and blade.texture != null, "sword PNG attaches to animated hand")
+    if chest != null and chest.texture != null:
+        check(absf(chest.scale.x * float(chest.texture.get_width()) - 312.32) < 1.0, "preview-image pixel size normalized to original bone scale")
     rig.configure(&"idle_ready", 0.0, 1.0)
     rig.configure(&"run_forward", 0.5, -1.0)
     rig.configure(&"attack_light", 0.5, 1.0)
@@ -33,5 +44,5 @@ func _run() -> void:
         instance.queue_free()
     rig.queue_free()
     if failures == 0:
-        print("[RigFull v0.2] PASS: preview, 9 source files, fallback and pose API")
+        print("[RigFull v0.2] PASS: nine PNGs loaded as actual animated Sprite2D parts, Skeleton2D, preview, and pose API")
     quit(1 if failures > 0 else 0)
