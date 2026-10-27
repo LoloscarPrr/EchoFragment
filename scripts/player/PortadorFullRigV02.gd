@@ -105,7 +105,10 @@ func _sprite(parent: Bone2D, source_id: String, label: String, source_pivot: Vec
     sprite.name = label
     sprite.texture = tex
     sprite.centered = false
-    sprite.scale = Vector2.ONE * size_factor
+    # Imported Canva previews may be 200px; use their ORIGINAL art coordinate system.
+    # Uniform source-to-texture conversion keeps the existing pivots/rig proportions.
+    var native_size := Vector2(1024.0, 1024.0) if source_id == "helmet" or source_id == "torso" or source_id == "pelvis" else Vector2(1024.0, 1536.0)
+    sprite.scale = Vector2(size_factor * native_size.x / float(tex.get_width()), size_factor * native_size.y / float(tex.get_height()))
     sprite.position = -source_pivot * size_factor
     sprite.z_index = depth
     sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
@@ -117,12 +120,17 @@ func _region(parent: Bone2D, source_id: String, label: String, begin_y: int, end
     sprite.name = label
     sprite.texture = tex
     sprite.region_enabled = true
-    var y_min := clampi(begin_y, 0, tex.get_height())
-    var y_max := clampi(end_y, y_min, tex.get_height())
+    # Region cuts and joint pivots are authored in the 1024x1536 original source.
+    # Translate only the sampling rectangle to the imported image resolution.
+    var original_height := 1536.0
+    var original_width := 1024.0
+    var ratio_y := float(tex.get_height()) / original_height
+    var y_min := clampi(roundi(float(begin_y) * ratio_y), 0, tex.get_height())
+    var y_max := clampi(roundi(float(end_y) * ratio_y), y_min + 1, tex.get_height())
     sprite.region_rect = Rect2(0.0, float(y_min), float(tex.get_width()), float(y_max - y_min))
     sprite.centered = false
-    sprite.scale = Vector2.ONE * size_factor
-    sprite.position = (Vector2(0, y_min) - source_pivot) * size_factor
+    sprite.scale = Vector2(size_factor * original_width / float(tex.get_width()), size_factor * original_height / float(tex.get_height()))
+    sprite.position = Vector2(-source_pivot.x, float(begin_y) - source_pivot.y) * size_factor
     sprite.z_index = depth
     sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
     parent.add_child(sprite)
