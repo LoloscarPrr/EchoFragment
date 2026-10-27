@@ -1,10 +1,10 @@
 {
-  "version": "v0.2",
+  "version": "v0.23-android-preview",
   "project": "EchoFragment",
   "rig_scene": "res://scenes/experiments/RigFullPreviewV02.tscn",
   "engine": "Godot 4.3",
   "github_branch": "feature/portador-rig2d-prototype",
-  "note": "These are Canva saved master images; not yet committed as binaries to GitHub. The script creates articulated regions from arm/leg PNGs at runtime.",
+  "note": "Nine Canva preview PNGs (200px maximum) are now committed to feature/portador-rig2d-prototype/assets/player/portador_rig2d/v02; source originals remain in Canva. The rig normalizes pivots from the 1024px coordinate system. Main branch is unchanged.",
   "assets": [
     {
       "slot": "helmet",
@@ -77,5 +77,10 @@
     "No integration into Player.gd/Android APK. This preview is isolated.",
     "GitHub CI checks syntax and fallback because original binary PNG files are not yet in the branch."
   ],
-  "next_step": "Export 9 independent original PNGs (using those exact required filenames) into res://assets/player/portador_rig2d/v02. Rotate each articulation and retouch visible seams; then wire into Player animation controller."
+  "next_step": "Export 9 independent original PNGs (using those exact required filenames) into res://assets/player/portador_rig2d/v02. Rotate each articulation and retouch visible seams; then wire into Player animation controller.",
+  "android_apk": "https://github.com/LoloscarPrr/EchoFragment/releases/download/rig2d-preview-v0.23/EchoFragment-0.23-Rig2D.apk",
+  "art_resolution": "200x200 or 133x200 Canva thumbnails. Replace with original RGBA masters for shipping.",
+  "art_import_complete_preview": true,
+  "full_quality_art_complete": false,
+  "updated_on": "2026-10-27"
 }
