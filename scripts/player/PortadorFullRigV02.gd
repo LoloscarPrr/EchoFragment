@@ -59,12 +59,13 @@ func _ready() -> void:
     var right_thigh := _bone(hips, &"LegRThigh", Vector2(29, 22))
     var right_shin := _bone(right_thigh, &"LegRShin", Vector2(9, 84))
     var right_foot := _bone(right_shin, &"LegRFoot", Vector2(15, 94))
-    var arm_l := _bone(torso, &"ArmLUpper", Vector2(-67, -119))
-    var fore_l := _bone(arm_l, &"ArmLForearm", Vector2(-1, 64))
-    var hand_l := _bone(fore_l, &"ArmLHand", Vector2(15, 73))
+    # Move the rear shoulder outward so the left arm is not concealed by the cuirass.
+    var arm_l := _bone(torso, &"ArmLUpper", Vector2(-91, -119))
+    var fore_l := _bone(arm_l, &"ArmLForearm", Vector2(-1, 58))
+    var hand_l := _bone(fore_l, &"ArmLHand", Vector2(14, 65))
     var arm_r := _bone(torso, &"ArmRUpper", Vector2(68, -119))
-    var fore_r := _bone(arm_r, &"ArmRForearm", Vector2(7, 66))
-    var hand_r := _bone(fore_r, &"ArmRHand", Vector2(28, 72))
+    var fore_r := _bone(arm_r, &"ArmRForearm", Vector2(6, 59))
+    var hand_r := _bone(fore_r, &"ArmRHand", Vector2(25, 64))
     var sword := _bone(hand_r, &"Sword", Vector2(6, 25))
 
     # Render order: cape behind all, then rear limbs, torso/helmet, front limbs, sword.
@@ -72,18 +73,19 @@ func _ready() -> void:
     _region(left_thigh, "leg_L", "leg_L_thigh", 0, 708, Vector2(515, 270), 0.205, -19)
     _region(left_shin, "leg_L", "leg_L_shin", 650, 1150, Vector2(525, 708), 0.205, -18)
     _region(left_foot, "leg_L", "leg_L_foot", 1090, 1536, Vector2(620, 1150), 0.205, -17)
-    _region(arm_l, "arm_L", "arm_L_upper", 0, 700, Vector2(488, 310), 0.165, -15)
-    _region(fore_l, "arm_L", "arm_L_forearm", 638, 1140, Vector2(483, 700), 0.165, -14)
-    _region(hand_l, "arm_L", "arm_L_hand", 1075, 1536, Vector2(575, 1140), 0.165, -13)
+    _region(arm_l, "arm_L", "arm_L_upper", 0, 700, Vector2(488, 310), 0.148, -15)
+    _region(fore_l, "arm_L", "arm_L_forearm", 638, 1140, Vector2(483, 700), 0.148, -14)
+    _region(hand_l, "arm_L", "arm_L_hand", 1075, 1536, Vector2(575, 1140), 0.148, -13)
     _sprite(torso, "torso", "torso", Vector2(515, 752), 0.305, 0)
-    _sprite(helmet, "helmet", "helmet", Vector2(550, 810), 0.205, 4)
+    # Helmet master is a close-up: its old 0.205 ratio made the head almost as tall as the torso.
+    _sprite(helmet, "helmet", "helmet", Vector2(550, 810), 0.155, 4)
     _region(right_thigh, "leg_R", "leg_R_thigh", 0, 684, Vector2(482, 275), 0.205, 6)
     _region(right_shin, "leg_R", "leg_R_shin", 626, 1140, Vector2(525, 684), 0.205, 7)
     _region(right_foot, "leg_R", "leg_R_foot", 1080, 1536, Vector2(600, 1140), 0.205, 8)
     _sprite(hips, "pelvis", "pelvis", Vector2(512, 298), 0.246, 10)
-    _region(arm_r, "arm_R", "arm_R_upper", 0, 714, Vector2(480, 315), 0.166, 11)
-    _region(fore_r, "arm_R", "arm_R_forearm", 650, 1145, Vector2(520, 714), 0.166, 12)
-    _region(hand_r, "arm_R", "arm_R_hand", 1080, 1536, Vector2(690, 1145), 0.166, 13)
+    _region(arm_r, "arm_R", "arm_R_upper", 0, 714, Vector2(480, 315), 0.148, 11)
+    _region(fore_r, "arm_R", "arm_R_forearm", 650, 1145, Vector2(520, 714), 0.148, 12)
+    _region(hand_r, "arm_R", "arm_R_hand", 1080, 1536, Vector2(690, 1145), 0.148, 13)
     _sprite(sword, "sword", "sword", Vector2(844, 229), 0.145, 15)
     # Cape tip is a separate bone prepared for later PNG; keep it idle
     # until the cape itself is repainted into independent physical segments.
@@ -212,14 +214,14 @@ func _apply_pose() -> void:
             hips.position.y = -absf(gait) * 7.0
             torso.rotation = -0.14 + breathing * 0.01
             helmet.rotation = 0.07
-            thigh_l.rotation = -gait * 0.55
-            thigh_r.rotation = gait * 0.55
-            shin_l.rotation = maxf(0.0, gait) * 0.55
-            shin_r.rotation = maxf(0.0, -gait) * 0.55
+            thigh_l.rotation = -gait * 0.42
+            thigh_r.rotation = gait * 0.42
+            shin_l.rotation = maxf(0.0, gait) * 0.32
+            shin_r.rotation = maxf(0.0, -gait) * 0.32
             foot_l.rotation = -shin_l.rotation * 0.45
             foot_r.rotation = -shin_r.rotation * 0.45
-            arm_l.rotation = gait * 0.30
-            arm_r.rotation = -gait * 0.24
+            arm_l.rotation = gait * 0.23
+            arm_r.rotation = -gait * 0.20
             fore_l.rotation = 0.24
             fore_r.rotation = -0.10
             cape.rotation = -0.32 + sin(_time * 8.0) * 0.12
@@ -227,29 +229,30 @@ func _apply_pose() -> void:
             var windup := smoothstep(0.0, 0.28, state_progress)
             var release := smoothstep(0.31, 0.60, state_progress)
             var recover := smoothstep(0.63, 1.0, state_progress)
-            torso.rotation = -0.22 * windup + 0.52 * release - 0.30 * recover
+            torso.rotation = -0.18 * windup + 0.42 * release - 0.24 * recover
             helmet.rotation = -torso.rotation * 0.45
-            arm_r.rotation = -1.15 * windup + 2.08 * release - 0.93 * recover
-            fore_r.rotation = -0.74 * windup + 0.86 * release - 0.12 * recover
-            hand_r.rotation = -0.30 * windup + 0.56 * release - 0.26 * recover
+            arm_r.rotation = -0.92 * windup + 1.66 * release - 0.74 * recover
+            # Keep the temporary straight seam from opening into a dislocated elbow.
+            fore_r.rotation = -0.38 * windup + 0.46 * release - 0.08 * recover
+            hand_r.rotation = -0.22 * windup + 0.36 * release - 0.14 * recover
             sword.rotation = -0.30 * windup - 0.64 * release + 0.94 * recover
             arm_l.rotation = -0.24 * windup + 0.34 * release - 0.10 * recover
-            thigh_r.rotation = -0.35 * windup + 0.48 * release - 0.13 * recover
-            thigh_l.rotation = 0.22 * windup - 0.32 * release + 0.10 * recover
+            thigh_r.rotation = -0.26 * windup + 0.36 * release - 0.10 * recover
+            thigh_l.rotation = 0.18 * windup - 0.25 * release + 0.07 * recover
             cape.rotation = -0.28 * windup - 0.36 * release + 0.64 * recover
             hips.position.y = 4.0 * windup - 4.0 * recover
         &"dodge":
             var duck := sin(PI * state_progress)
-            hips.position.y = 21.0 * duck
-            hips.rotation = 0.28 * duck
-            torso.rotation = 0.50 * duck
+            hips.position.y = 16.0 * duck
+            hips.rotation = 0.14 * duck
+            torso.rotation = 0.29 * duck
             helmet.rotation = -0.18 * duck
-            arm_r.rotation = -0.62 * duck
-            fore_r.rotation = -0.5 * duck
-            thigh_l.rotation = 0.88 * duck
-            thigh_r.rotation = -0.90 * duck
-            shin_l.rotation = -0.85 * duck
-            shin_r.rotation = 0.70 * duck
+            arm_r.rotation = -0.42 * duck
+            fore_r.rotation = -0.26 * duck
+            thigh_l.rotation = 0.53 * duck
+            thigh_r.rotation = -0.54 * duck
+            shin_l.rotation = -0.43 * duck
+            shin_r.rotation = 0.44 * duck
             cape.rotation = -0.5 * duck
         &"jump_rise", &"jump_fall":
             hips.position.y = -14.0
