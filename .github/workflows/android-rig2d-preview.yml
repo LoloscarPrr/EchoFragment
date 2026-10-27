@@ -1,0 +1,60 @@
+name: Android Rig2D Preview v0.23
+
+on:
+  push:
+    branches:
+      - feature/portador-rig2d-prototype
+    paths:
+      - 'scripts/player/**'
+      - 'assets/player/portador_rig2d/v02/**'
+      - 'export_presets.cfg'
+      - '.github/workflows/android-rig2d-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-rig-preview:
+    runs-on: ubuntu-24.04
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - name: Checkout branch and nine PNGs
+        uses: actions/checkout@v4
+
+      - name: Configure Godot export templates
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/
+          mkdir -p ~/.config/
+          mv /root/.config/godot ~/.config/godot
+          mv /root/.local/share/godot/export_templates/4.3.stable ~/.local/share/godot/export_templates/4.3.stable
+          test -f /root/debug.keystore
+
+      - name: Import art and validate all scripts
+        run: |
+          godot --headless --path . --editor --quit
+
+      - name: Verify actual textured rig and player bridge
+        run: |
+          godot --headless --path . --script res://tests/rig_full_v02_test.gd
+          godot --headless --path . --script res://tests/rig_player_bridge_test.gd
+
+      - name: Export Android APK v0.23
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /root/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
+        run: |
+          mkdir -p build
+          godot --headless --verbose --path . --export-debug "Android Playtest" build/EchoFragment-0.23-Rig2D.apk
+          test -s build/EchoFragment-0.23-Rig2D.apk
+          ls -lh build/EchoFragment-0.23-Rig2D.apk
+
+      - name: Upload APK for Android testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: EchoFragment-0.23-Rig2D-APK
+          path: build/EchoFragment-0.23-Rig2D.apk
+          if-no-files-found: error
+          retention-days: 30
