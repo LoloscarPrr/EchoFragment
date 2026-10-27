@@ -1,6 +1,8 @@
+> **Actualización 2026-10-27:** los nueve PNG **sí están ahora en GitHub**, en `assets/player/portador_rig2d/v02/`, gracias al importador de Canva. Son **previsualizaciones de 200 px de alto máximo**, no los originales 1024×1024 / 1024×1536. La lógica de `PortadorFullRigV02` escala pivotes/regiones al espacio del arte original. Godot CI validó el rig texturizado y `Player.gd` ya contiene su conexión visual. Se generó APK Android v0.23 (versionCode 27): https://github.com/LoloscarPrr/EchoFragment/releases/download/rig2d-preview-v0.23/EchoFragment-0.23-Rig2D.apk. El juego principal `main` sigue intacto. Falta validar calidad visual en dispositivo, pulir uniones y sustituir estas versiones por originales de alta resolución.
+
 # EchoFragment — Prototipo articulado de cuerpo completo v0.2
 
-## Resultado concreto (2026-10-26)
+## Resultado concreto (2026-10-26 y actualización 2026-10-27)
 Se incorporaron `PortadorFullRigV02.gd` y `RigFullPreviewV02.tscn` en la rama `feature/portador-rig2d-prototype`. Son **recursos experimentales que no cambian el juego publicado ni Main.tscn**.
 
 El sistema prepara **17 elementos animables** desde **nueve ilustraciones fuente independientes**: casco, torso, pelvis, dos brazos, dos piernas, capa y espada. El brazo tiene hombro/codo/mano independientes y la pierna tiene cadera/rodilla/pie independientes. `Sprite2D.region_rect` segmenta las ilustraciones completas del brazo y la pierna para el **test mecánico**. Los 17 PNG definitivos, completamente dibujados debajo de cada junta, aún están pendientes.
