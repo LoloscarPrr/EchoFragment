@@ -23,6 +23,9 @@ enum WeaponMode { SWORD, BOW, STAFF, DAGGERS }
 @export var dodge_duration := 0.18
 @export var dodge_invulnerability := 0.28
 @export var combo_window := 0.55
+@export var enable_articulated_visual := true
+@export var articulated_scale := 0.50
+@export var articulated_anchor := Vector2(0, -65)
 
 var health: int
 var stamina: float
@@ -34,6 +37,7 @@ var progression := Progression.new()
 var animation_controller := CharacterAnimationController.new()
 var proxy_visual: ProtagonistProxyVisual
 var canonical_visual: CanonicalProtagonistVisual
+var articulated_visual: PortadorFullRigV02
 var combat_effects: P0CombatEffects
 var _sword_hit_committed := false
 var _hitstop_active := false
@@ -60,6 +64,15 @@ func _ready() -> void:
 	add_child(proxy_visual)
 	canonical_visual = CanonicalProtagonistVisual.new()
 	add_child(canonical_visual)
+	# Load rig only as an opt-in rendering layer. If any PNG is missing,
+	# preserve the existing canonical character and combat animations.
+	articulated_visual = PortadorFullRigV02.new()
+	articulated_visual.name = "ArticulatedVisual"
+	articulated_visual.demo_cycle = false
+	articulated_visual.scale = Vector2.ONE * articulated_scale
+	articulated_visual.position = articulated_anchor
+	add_child(articulated_visual)
+	articulated_visual.visible = false
 	proxy_visual.visible = false
 	combat_effects = P0CombatEffects.new()
 	add_child(combat_effects)
@@ -314,16 +327,29 @@ func _spawn_projectile(scene: PackedScene, damage: int, speed: float, knockback:
 	projectile.configure(facing, damage, speed, knockback, global_position)
 
 func _update_visual(delta: float) -> void:
-	# Use the actual canonical Portador del Eco art when wielding the sword.
-	# Other weapons retain their existing proxy until canonical poses exist.
-	var show_canonical := weapon_mode == WeaponMode.SWORD and is_instance_valid(canonical_visual)
+	# Switch only the drawing layer; keep movement, attack hitboxes and timing.
+	var sword_equipped := weapon_mode == WeaponMode.SWORD
+	var rig_ready := enable_articulated_visual and sword_equipped and is_instance_valid(articulated_visual) and articulated_visual.art_loaded
+	var show_canonical := sword_equipped and not rig_ready and is_instance_valid(canonical_visual)
+	if is_instance_valid(articulated_visual):
+		articulated_visual.visible = rig_ready
+		if rig_ready:
+			# Dodge runs on physical time, independently of the animation controller.
+			var animation_state: StringName = animation_controller.state
+			var animation_progress := animation_controller.state_progress()
+			var now := Time.get_ticks_msec() / 1000.0
+			if now < _dodge_until:
+				animation_state = &"dodge"
+				var duration := dodge_duration + (0.05 if progression.has_skill(&"cunning_step") else 0.0)
+				animation_progress = clampf(1.0 - (_dodge_until - now) / maxf(0.01, duration), 0.0, 1.0)
+			articulated_visual.configure(animation_state, animation_progress, facing)
 	if is_instance_valid(canonical_visual):
 		canonical_visual.visible = show_canonical
 		if show_canonical:
 			canonical_visual.configure(animation_controller.state, animation_controller.state_progress(), facing, animation_controller.attack_reference_frame_index())
 	if is_instance_valid(proxy_visual):
-		proxy_visual.visible = not show_canonical
-		if not show_canonical:
+		proxy_visual.visible = not sword_equipped
+		if not sword_equipped:
 			proxy_visual.configure(animation_controller.state, animation_controller.state_progress(), facing, animation_controller.drawing_index())
 	if absf(velocity.x) > 15.0 and is_on_floor():
 		var bob := sin(Time.get_ticks_msec() * 0.018) * 2.0
