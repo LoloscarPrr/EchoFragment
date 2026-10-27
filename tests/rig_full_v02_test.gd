@@ -30,6 +30,19 @@ func _run() -> void:
     check(blade != null and blade.texture != null, "sword PNG attaches to animated hand")
     if chest != null and chest.texture != null:
         check(absf(chest.scale.x * float(chest.texture.get_width()) - 312.32) < 1.0, "preview-image pixel size normalized to original bone scale")
+    # The head was originally 0.205 of its 1024px master and looked nearly as
+    # tall as the whole chest. Preserve a plausible helmet-to-torso proportion.
+    var head_art := rig.get_node_or_null("Armature/Hips/Torso/Helmet/helmet") as Sprite2D
+    check(head_art != null, "helmet Sprite2D exists")
+    if head_art != null and chest != null and head_art.texture != null and chest.texture != null:
+        var helmet_canvas_width: float = absf(head_art.scale.x * float(head_art.texture.get_width()))
+        var chest_canvas_width: float = absf(chest.scale.x * float(chest.texture.get_width()))
+        check(helmet_canvas_width < chest_canvas_width * 0.55, "helmet is not oversized relative to cuirass")
+        check(helmet_canvas_width > chest_canvas_width * 0.45, "helmet remains visible")
+    var rear_arm := rig.get_node_or_null("Armature/Hips/Torso/ArmLUpper") as Bone2D
+    var forearm := rig.get_node_or_null("Armature/Hips/Torso/ArmRUpper/ArmRForearm") as Bone2D
+    check(rear_arm != null and rear_arm.position.x < -85.0, "rear arm shoulder sits outside chest silhouette")
+    check(forearm != null and forearm.position.y <= 60.0, "smaller upper arm retains matched elbow pivot")
     rig.configure(&"idle_ready", 0.0, 1.0)
     rig.configure(&"run_forward", 0.5, -1.0)
     rig.configure(&"attack_light", 0.5, 1.0)
