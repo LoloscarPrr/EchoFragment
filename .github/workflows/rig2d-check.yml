@@ -28,6 +28,9 @@ jobs:
       - name: Verify full-body cutout rig v0.2
         run: |
           ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/rig_full_v02_test.gd
+      - name: Verify 22 independent anatomical cutout images v0.3
+        run: |
+          ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/rig_clean_v03_test.gd
       - name: Verify Player renders original art when rig PNGs are missing
         run: |
           ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/rig_player_bridge_test.gd
