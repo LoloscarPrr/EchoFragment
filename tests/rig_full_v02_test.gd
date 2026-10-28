@@ -43,6 +43,25 @@ func _run() -> void:
     var forearm := rig.get_node_or_null("Armature/Hips/Torso/ArmRUpper/ArmRForearm") as Bone2D
     check(rear_arm != null and rear_arm.position.x < -85.0, "rear arm shoulder sits outside chest silhouette")
     check(forearm != null and forearm.position.y <= 60.0, "smaller upper arm retains matched elbow pivot")
+    # Video QA: the old rig produced a floating cuirass, one overlapping leg,
+    # a black left shoulder socket and no visible trailing cape.
+    var root_hips := rig.get_node_or_null("Armature/Hips") as Bone2D
+    var torso_bone := rig.get_node_or_null("Armature/Hips/Torso") as Bone2D
+    var rear_leg := rig.get_node_or_null("Armature/Hips/LegLThigh") as Bone2D
+    var front_leg := rig.get_node_or_null("Armature/Hips/LegRThigh") as Bone2D
+    var cape_sprite := rig.get_node_or_null("Armature/Hips/Torso/Cape/cape") as Sprite2D
+    var rear_shoulder_sprite := rig.get_node_or_null("Armature/Hips/Torso/ArmLUpper/arm_L_upper") as Sprite2D
+    check(root_hips != null and torso_bone != null, "real torso/pelvis bone pair exists")
+    if torso_bone != null:
+        check(torso_bone.position.y >= -32.0, "cuirass must overlap the waist visually")
+    check(rear_leg != null and front_leg != null, "both leg roots exist")
+    if rear_leg != null and front_leg != null:
+        check(front_leg.position.x - rear_leg.position.x >= 90.0, "legs must not share a single hip column")
+    check(cape_sprite != null and cape_sprite.texture != null, "real cape art present")
+    if cape_sprite != null:
+        check(cape_sprite.z_index < 0, "cape stays behind the armor")
+        check(cape_sprite.scale.x * float(cape_sprite.texture.get_width()) > 240.0, "cape fills background silhouette")
+    check(rear_shoulder_sprite != null and rear_shoulder_sprite.z_index > 0, "rear shoulder covers hollow socket instead of hiding behind chest")
     rig.configure(&"idle_ready", 0.0, 1.0)
     rig.configure(&"run_forward", 0.5, -1.0)
     rig.configure(&"attack_light", 0.5, 1.0)
