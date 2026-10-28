@@ -49,18 +49,23 @@ func _ready() -> void:
     add_child(_armature)
 
     var hips := _bone(_armature, &"Hips", Vector2.ZERO)
-    var torso := _bone(hips, &"Torso", Vector2(0, -45))
+    # The recorded Android clip shows a clear gap between cuirass and belt.
+    # Move the upper body 15 source-space units down so armor overlaps the waist.
+    var torso := _bone(hips, &"Torso", Vector2(0, -30))
     var helmet := _bone(torso, &"Helmet", Vector2(0, -153))
-    var cape := _bone(torso, &"Cape", Vector2(-21, -134))
+    var cape := _bone(torso, &"Cape", Vector2(-31, -116))
     var cape_tip := _bone(cape, &"CapeTip", Vector2(-87, 146))
-    var left_thigh := _bone(hips, &"LegLThigh", Vector2(-31, 22))
-    var left_shin := _bone(left_thigh, &"LegLShin", Vector2(2, 90))
-    var left_foot := _bone(left_shin, &"LegLFoot", Vector2(19, 91))
-    var right_thigh := _bone(hips, &"LegRThigh", Vector2(29, 22))
-    var right_shin := _bone(right_thigh, &"LegRShin", Vector2(9, 84))
-    var right_foot := _bone(right_shin, &"LegRFoot", Vector2(15, 94))
+    # Separate the hip attachment points: both legs overlapped on screen.
+    var left_thigh := _bone(hips, &"LegLThigh", Vector2(-50, 19))
+    var left_shin := _bone(left_thigh, &"LegLShin", Vector2(2, 62))
+    var left_foot := _bone(left_shin, &"LegLFoot", Vector2(13, 66))
+    var right_thigh := _bone(hips, &"LegRThigh", Vector2(47, 19))
+    var right_shin := _bone(right_thigh, &"LegRShin", Vector2(6, 60))
+    var right_foot := _bone(right_shin, &"LegRFoot", Vector2(11, 68))
     # Move the rear shoulder outward so the left arm is not concealed by the cuirass.
-    var arm_l := _bone(torso, &"ArmLUpper", Vector2(-91, -119))
+    # The rear shoulder is an empty socket in the torso art. Place its real
+    # upper-arm image above the coraza, rather than rendering it behind it.
+    var arm_l := _bone(torso, &"ArmLUpper", Vector2(-80, -119))
     var fore_l := _bone(arm_l, &"ArmLForearm", Vector2(-1, 58))
     var hand_l := _bone(fore_l, &"ArmLHand", Vector2(14, 65))
     var arm_r := _bone(torso, &"ArmRUpper", Vector2(68, -119))
@@ -69,19 +74,20 @@ func _ready() -> void:
     var sword := _bone(hand_r, &"Sword", Vector2(6, 25))
 
     # Render order: cape behind all, then rear limbs, torso/helmet, front limbs, sword.
-    _sprite(cape, "cape", "cape", Vector2(840, 245), 0.235, -26)
-    _region(left_thigh, "leg_L", "leg_L_thigh", 0, 708, Vector2(515, 270), 0.205, -19)
-    _region(left_shin, "leg_L", "leg_L_shin", 650, 1150, Vector2(525, 708), 0.205, -18)
-    _region(left_foot, "leg_L", "leg_L_foot", 1090, 1536, Vector2(620, 1150), 0.205, -17)
-    _region(arm_l, "arm_L", "arm_L_upper", 0, 700, Vector2(488, 310), 0.148, -15)
-    _region(fore_l, "arm_L", "arm_L_forearm", 638, 1140, Vector2(483, 700), 0.148, -14)
-    _region(hand_l, "arm_L", "arm_L_hand", 1075, 1536, Vector2(575, 1140), 0.148, -13)
+    _sprite(cape, "cape", "cape", Vector2(840, 245), 0.275, -26)
+    _region(left_thigh, "leg_L", "leg_L_thigh", 0, 708, Vector2(515, 270), 0.145, -19)
+    _region(left_shin, "leg_L", "leg_L_shin", 650, 1150, Vector2(525, 708), 0.145, -18)
+    _region(left_foot, "leg_L", "leg_L_foot", 1090, 1536, Vector2(620, 1150), 0.145, -17)
+    # Cover the black socket in the torso artwork with the actual shoulder PNG.
+    _region(arm_l, "arm_L", "arm_L_upper", 0, 700, Vector2(488, 310), 0.148, 3)
+    _region(fore_l, "arm_L", "arm_L_forearm", 638, 1140, Vector2(483, 700), 0.148, 3)
+    _region(hand_l, "arm_L", "arm_L_hand", 1075, 1536, Vector2(575, 1140), 0.148, 3)
     _sprite(torso, "torso", "torso", Vector2(515, 752), 0.305, 0)
     # Helmet master is a close-up: its old 0.205 ratio made the head almost as tall as the torso.
     _sprite(helmet, "helmet", "helmet", Vector2(550, 810), 0.155, 4)
-    _region(right_thigh, "leg_R", "leg_R_thigh", 0, 684, Vector2(482, 275), 0.205, 6)
-    _region(right_shin, "leg_R", "leg_R_shin", 626, 1140, Vector2(525, 684), 0.205, 7)
-    _region(right_foot, "leg_R", "leg_R_foot", 1080, 1536, Vector2(600, 1140), 0.205, 8)
+    _region(right_thigh, "leg_R", "leg_R_thigh", 0, 684, Vector2(482, 275), 0.145, 6)
+    _region(right_shin, "leg_R", "leg_R_shin", 626, 1140, Vector2(525, 684), 0.145, 7)
+    _region(right_foot, "leg_R", "leg_R_foot", 1080, 1536, Vector2(600, 1140), 0.145, 8)
     _sprite(hips, "pelvis", "pelvis", Vector2(512, 298), 0.246, 10)
     _region(arm_r, "arm_R", "arm_R_upper", 0, 714, Vector2(480, 315), 0.148, 11)
     _region(fore_r, "arm_R", "arm_R_forearm", 650, 1145, Vector2(520, 714), 0.148, 12)
