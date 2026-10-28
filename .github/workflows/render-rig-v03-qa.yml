@@ -1,0 +1,24 @@
+name: Visual QA of Portador 22-part rig v0.3
+on:
+  push:
+    branches: [feature/portador-rig2d-prototype]
+    paths: ['.github/workflows/render-rig-v03-qa.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  render-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pillow
+        run: python3 -m pip install --user --break-system-packages pillow
+      - name: Assemble real parts in neutral pose
+        run: python3 tools/art/render_portador_v03_qa.py
+      - name: Commit QA preview
+        run: |
+          git config user.name 'EchoFragment QA'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/animation/rig_v03_assembled_qa.png
+          git commit -m 'test(art): capture neutral v0.3 actual sprite assembly' || exit 0
+          git push origin HEAD:feature/portador-rig2d-prototype
