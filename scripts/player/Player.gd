@@ -25,7 +25,7 @@ enum WeaponMode { SWORD, BOW, STAFF, DAGGERS }
 @export var combo_window := 0.55
 @export var enable_articulated_visual := true
 @export var articulated_scale := 0.50
-@export var articulated_anchor := Vector2(0, -65)
+@export var articulated_anchor := Vector2(0, -106)
 
 var health: int
 var stamina: float
@@ -66,7 +66,7 @@ func _ready() -> void:
 	add_child(canonical_visual)
 	# Load rig only as an opt-in rendering layer. If any PNG is missing,
 	# preserve the existing canonical character and combat animations.
-	articulated_visual = PortadorFullRigV02.new()
+	articulated_visual = PortadorCleanRigV03.new()
 	articulated_visual.name = "ArticulatedVisual"
 	articulated_visual.demo_cycle = false
 	articulated_visual.scale = Vector2.ONE * articulated_scale
