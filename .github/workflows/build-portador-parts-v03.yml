@@ -1,0 +1,51 @@
+name: Build independent Portador 2D cutout parts v0.3
+
+on:
+  push:
+    branches: [feature/portador-rig2d-prototype]
+    paths:
+      - '.github/workflows/build-portador-parts-v03.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-parts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the experimental project
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Install RGBA art processor
+        run: |
+          python3 -m pip install --user --break-system-packages pillow numpy
+      - name: Generate 22 anatomically split PNGs with feathered joint overlap
+        run: |
+          python3 tools/art/build_portador_cutouts_v03.py \
+            --source assets/player/portador_rig2d/v02 \
+            --out assets/player/portador_rig2d/v03
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          p=Path('assets/player/portador_rig2d/v03')
+          assets=list(p.glob('portador_*.png'))
+          assert len(assets)==22, f'Expected 22 individual pieces; found {len(assets)}'
+          for file in assets:
+              with Image.open(file) as im:
+                  assert im.mode=='RGBA', file
+                  assert im.getchannel('A').getbbox() is not None, file
+                  print(file.name, im.size, im.getchannel('A').getbbox())
+          PY
+      - name: Commit transparent cutout images to experimental branch
+        run: |
+          git config user.name 'EchoFragment Rig Art Automation'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/player/portador_rig2d/v03/
+          if git diff --cached --quiet; then
+            echo 'No art changes'
+          else
+            git commit -m 'assets(rig2d): generate 22 anatomical alpha cutout textures v0.3'
+            git push origin HEAD:feature/portador-rig2d-prototype
+          fi

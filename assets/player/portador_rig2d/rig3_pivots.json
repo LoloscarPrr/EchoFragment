@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "project": "EchoFragment",
+  "character": "Portador del Eco",
+  "editor": "Godot 4.3",
+  "notes": [
+    "3 art assets are not yet committed as PNG binaries to this branch; download supplied pack to populate paths.",
+    "A 3-part articulated torso rig, not an animation-ready whole character.",
+    "The original 1024-square transparent PNGs must be kept unchanged to preserve pivot coordinates."
+  ],
+  "images": [
+    {
+      "file": "portador_head_helmet.png",
+      "src_name": "portador_head_helmet_v0_1.png",
+      "bone": "Armature/Hips/Torso/Neck/Helmet",
+      "pivot_px": [
+        550,
+        760
+      ],
+      "sprite_scale": 0.36,
+      "z_index": 2
+    },
+    {
+      "file": "portador_torso_upper.png",
+      "src_name": "portador_torso_upper_v0_1.png",
+      "bone": "Armature/Hips/Torso",
+      "pivot_px": [
+        515,
+        735
+      ],
+      "sprite_scale": 0.58,
+      "z_index": 1
+    },
+    {
+      "file": "portador_pelvis_waist.png",
+      "src_name": "portador_pelvis_waist_v0_1.png",
+      "bone": "Armature/Hips",
+      "pivot_px": [
+        512,
+        287
+      ],
+      "sprite_scale": 0.6,
+      "z_index": 3
+    }
+  ],
+  "bone_offsets": {
+    "hips": [
+      0,
+      0
+    ],
+    "torso_from_hips": [
+      0,
+      -82
+    ],
+    "neck_from_torso": [
+      0,
+      -241
+    ],
+    "helmet_from_neck": [
+      0,
+      0
+    ]
+  }
+}

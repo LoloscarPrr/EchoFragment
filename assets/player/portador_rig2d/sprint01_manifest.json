@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "project": "EchoFragment",
+  "character": "portador_del_eco",
+  "rig": "Skeleton2D",
+  "branch": "feature/portador-rig2d-prototype",
+  "art_reference": "Portador del Eco con casco cerrado, armadura negro grafito y capa carmesí",
+  "units": "PNG pixel coordinates for pivots (top-left origin); blank until actual art is approved",
+  "requirements": {
+    "format": "image/png",
+    "alpha": "RGBA transparency",
+    "safe_margin_fraction": 0.15,
+    "independent_images": true,
+    "lighting": "upper-left",
+    "slash_effect_separate": true
+  },
+  "parts": [
+    {
+      "id": "torso_upper",
+      "filename": "portador_torso_upper.png",
+      "bone": "Armature/Hips/Torso",
+      "pivot": "center of waist/spine articulation",
+      "pixel_width": null,
+      "pixel_height": null,
+      "pivot_px": null,
+      "source_art_ready": false
+    },
+    {
+      "id": "pelvis_waist",
+      "filename": "portador_pelvis_waist.png",
+      "bone": "Armature/Hips",
+      "pivot": "center of pelvis",
+      "pixel_width": null,
+      "pixel_height": null,
+      "pivot_px": null,
+      "source_art_ready": false
+    },
+    {
+      "id": "head_helmet",
+      "filename": "portador_head_helmet.png",
+      "bone": "Armature/Hips/Torso/Neck/Helmet",
+      "pivot": "base of neck/helmet",
+      "pixel_width": null,
+      "pixel_height": null,
+      "pivot_px": null,
+      "source_art_ready": false
+    },
+    {
+      "id": "arm_R_upper",
+      "filename": "portador_arm_R_upper.png",
+      "bone": "Armature/Hips/Torso/SwordUpperArm",
+      "pivot": "right shoulder joint",
+      "pixel_width": null,
+      "pixel_height": null,
+      "pivot_px": null,
+      "source_art_ready": false
+    },
+    {
+      "id": "sword",
+      "filename": "portador_sword.png",
+      "bone": "Armature/Hips/Torso/SwordUpperArm/SwordForearm/Sword",
+      "pivot": "grip on hilt",
+      "pixel_width": null,
+      "pixel_height": null,
+      "pivot_px": null,
+      "source_art_ready": false,
+      "blocked_on": [
+        "arm_R_forearm",
+        "hand_R"
+      ]
+    }
+  ]
+}

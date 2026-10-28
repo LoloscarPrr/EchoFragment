@@ -1,0 +1,86 @@
+{
+  "version": "v0.23-android-preview",
+  "project": "EchoFragment",
+  "rig_scene": "res://scenes/experiments/RigFullPreviewV02.tscn",
+  "engine": "Godot 4.3",
+  "github_branch": "feature/portador-rig2d-prototype",
+  "note": "Nine Canva preview PNGs (200px maximum) are now committed to feature/portador-rig2d-prototype/assets/player/portador_rig2d/v02; source originals remain in Canva. The rig normalizes pivots from the 1024px coordinate system. Main branch is unchanged.",
+  "assets": [
+    {
+      "slot": "helmet",
+      "required_name": "portador_head_helmet.png",
+      "saved_in_canva": "MAHZIqct19g",
+      "origin": "portador_head_helmet_v0_1.png"
+    },
+    {
+      "slot": "torso",
+      "required_name": "portador_torso_upper.png",
+      "saved_in_canva": "MAHZIrjSKvw",
+      "origin": "portador_torso_upper_v0_1.png"
+    },
+    {
+      "slot": "pelvis",
+      "required_name": "portador_pelvis_waist.png",
+      "saved_in_canva": "MAHZIpSAVpg",
+      "origin": "portador_pelvis_waist_v0_1.png"
+    },
+    {
+      "slot": "arm_R",
+      "required_name": "portador_arm_R.png",
+      "saved_in_canva": "MAHZIqspOaQ",
+      "origin": "brazo_de_caballero_con_grietas_carmesí.png"
+    },
+    {
+      "slot": "arm_L",
+      "required_name": "portador_arm_L.png",
+      "saved_in_canva": "MAHZIrWEG2g",
+      "origin": "guantelete_carmesí_del_caballero_oscuro.png"
+    },
+    {
+      "slot": "leg_R",
+      "required_name": "portador_leg_R.png",
+      "saved_in_canva": "MAHZInEGf3A",
+      "origin": "pierna_acorazada_gótica_carmesí.png"
+    },
+    {
+      "slot": "leg_L",
+      "required_name": "portador_leg_L.png",
+      "saved_in_canva": "MAHZIlIMcww",
+      "origin": "pierna_acorazada_del_caballero_oscuro.png"
+    },
+    {
+      "slot": "sword",
+      "required_name": "portador_sword.png",
+      "saved_in_canva": "MAHZIoKzY4U",
+      "origin": "espada_demoníaca_de_acero_y_fuego_carmesí.png"
+    },
+    {
+      "slot": "cape",
+      "required_name": "portador_cape.png",
+      "saved_in_canva": "MAHZIi4nuUQ",
+      "origin": "capa_carmesí_desgarrada.png"
+    }
+  ],
+  "controls": {
+    "animation_states": [
+      "idle_ready",
+      "run_forward",
+      "attack_light",
+      "dodge",
+      "jump_rise",
+      "guard"
+    ],
+    "layering": "rear cape, rear leg, rear arm, torso helmet, front leg, pelvis, front arm, sword"
+  },
+  "limitations": [
+    "Arm and leg joint separation uses Sprite2D.region_rect on full-limb source images. Permanent per-bone PNGs with joint surfaces filled in are still needed.",
+    "No integration into Player.gd/Android APK. This preview is isolated.",
+    "GitHub CI checks syntax and fallback because original binary PNG files are not yet in the branch."
+  ],
+  "next_step": "Export 9 independent original PNGs (using those exact required filenames) into res://assets/player/portador_rig2d/v02. Rotate each articulation and retouch visible seams; then wire into Player animation controller.",
+  "android_apk": "https://github.com/LoloscarPrr/EchoFragment/releases/download/rig2d-preview-v0.23/EchoFragment-0.23-Rig2D.apk",
+  "art_resolution": "200x200 or 133x200 Canva thumbnails. Replace with original RGBA masters for shipping.",
+  "art_import_complete_preview": true,
+  "full_quality_art_complete": false,
+  "updated_on": "2026-10-27"
+}
