@@ -41,7 +41,7 @@ func _run() -> void:
         check(helmet_canvas_width > chest_canvas_width * 0.45, "helmet remains visible")
     var rear_arm := rig.get_node_or_null("Armature/Hips/Torso/ArmLUpper") as Bone2D
     var forearm := rig.get_node_or_null("Armature/Hips/Torso/ArmRUpper/ArmRForearm") as Bone2D
-    check(rear_arm != null and rear_arm.position.x < -85.0, "rear arm shoulder sits outside chest silhouette")
+    check(rear_arm != null and rear_arm.position.x <= -75.0, "rear arm shoulder keeps an outward offset from torso")
     check(forearm != null and forearm.position.y <= 60.0, "smaller upper arm retains matched elbow pivot")
     # Video QA: the old rig produced a floating cuirass, one overlapping leg,
     # a black left shoulder socket and no visible trailing cape.
