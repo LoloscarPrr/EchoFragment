@@ -1,0 +1,98 @@
+{
+  "project": "EchoFragment",
+  "version": "Modular V1 Sprint 01",
+  "is_new_art": true,
+  "old_rig_discarded": true,
+  "production_method": "4 independent original SVG drawings rendered to RGBA PNG (not image cutouts)",
+  "master_canvas": [
+    3000,
+    2400
+  ],
+  "parts": [
+    {
+      "id": "head_helmet",
+      "file": "portador_head_helmet.png",
+      "svg_source": "portador_head_helmet.svg",
+      "parent": "neck_guard",
+      "anchor_master": [
+        1362,
+        822
+      ],
+      "pivot_px": [
+        212,
+        516
+      ],
+      "canvas_px": [
+        602,
+        632
+      ],
+      "z": 30,
+      "art_status": "pending_neutral_visual_review",
+      "source": "independently authored vector paths"
+    },
+    {
+      "id": "neck_guard",
+      "file": "portador_neck_guard.png",
+      "svg_source": "portador_neck_guard.svg",
+      "parent": "torso_upper",
+      "anchor_master": [
+        1386,
+        948
+      ],
+      "pivot_px": [
+        139,
+        247
+      ],
+      "canvas_px": [
+        326,
+        356
+      ],
+      "z": 10,
+      "art_status": "pending_neutral_visual_review",
+      "source": "independently authored vector paths"
+    },
+    {
+      "id": "torso_upper",
+      "file": "portador_torso_upper.png",
+      "svg_source": "portador_torso_upper.svg",
+      "parent": "pelvis_waist",
+      "anchor_master": [
+        1404,
+        1530
+      ],
+      "pivot_px": [
+        392,
+        823
+      ],
+      "canvas_px": [
+        802,
+        1070
+      ],
+      "z": 20,
+      "art_status": "pending_neutral_visual_review",
+      "source": "independently authored vector paths"
+    },
+    {
+      "id": "pelvis_waist",
+      "file": "portador_pelvis_waist.png",
+      "svg_source": "portador_pelvis_waist.svg",
+      "parent": "hips",
+      "anchor_master": [
+        1422,
+        1668
+      ],
+      "pivot_px": [
+        342,
+        308
+      ],
+      "canvas_px": [
+        651,
+        677
+      ],
+      "z": 40,
+      "art_status": "pending_neutral_visual_review",
+      "source": "independently authored vector paths"
+    }
+  ],
+  "approval": "NOT APPROVED; neutral pose QA first"
+}
