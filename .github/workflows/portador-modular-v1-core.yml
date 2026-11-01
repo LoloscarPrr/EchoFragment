@@ -2,7 +2,7 @@ name: Portador Modular v1 - New Core Assets
 on:
   push:
     branches: [feature/portador-modular-v1-clean]
-    paths: ['.github/workflows/portador-modular-v1-core.yml']
+    paths: ['.github/workflows/portador-modular-v1-core.yml', 'tools/art/generate_portador_modular_v1_core.py']
   workflow_dispatch:
 
 permissions:
