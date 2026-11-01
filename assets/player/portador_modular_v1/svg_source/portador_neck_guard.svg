@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="800" viewBox="0 0 1000 800"><defs>
+<linearGradient id="plate" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7a747b"/><stop offset=".25" stop-color="#353640"/><stop offset=".62" stop-color="#181b25"/><stop offset="1" stop-color="#090c13"/></linearGradient>
+<linearGradient id="steel" x1="0" y1="0" x2=".95" y2="1"><stop stop-color="#bbb3b0"/><stop offset=".23" stop-color="#535661"/><stop offset=".57" stop-color="#292c35"/><stop offset="1" stop-color="#12131a"/></linearGradient>
+<linearGradient id="plating" x1="0" y1="0" x2="1" y2=".15"><stop stop-color="#171923"/><stop offset=".5" stop-color="#66606a"/><stop offset="1" stop-color="#131620"/></linearGradient>
+<linearGradient id="crimson" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#ab384a"/><stop offset=".55" stop-color="#63182a"/><stop offset="1" stop-color="#260e1c"/></linearGradient>
+<linearGradient id="leather" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#734e3b"/><stop offset=".6" stop-color="#342322"/><stop offset="1" stop-color="#1d1519"/></linearGradient>
+</defs><path d="M446 254 Q463 246 493 259 L507 294 495 329 449 335 433 304Z" fill="#11131b" stroke="#0b0d13" stroke-width="3"/>
+<path d="M439 278 L485 265 499 287 491 308 455 319 442 300Z" fill="url(#leather)" stroke="#7c4b51" stroke-width="3"/>
+<path d="M448 268 L482 268 488 297 462 311 447 300Z" fill="url(#plate)" stroke="#a79b98" stroke-width="2.5"/>
+<path d="M445 300 L486 291 501 306 489 324 447 329 437 313Z" fill="url(#plating)" stroke="#9e878a" stroke-width="2.5"/>
+<path d="M450 303 L483 303 M457 316 L489 312" fill="none" stroke="#d4aaa5" stroke-opacity=".6" stroke-width="2"/>
+<path d="M453 276 L463 291 456 302" fill="none" stroke="#de3b50" stroke-width="2.6"/></svg>

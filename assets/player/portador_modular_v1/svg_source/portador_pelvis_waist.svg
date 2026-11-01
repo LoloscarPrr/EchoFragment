@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="800" viewBox="0 0 1000 800"><defs>
+<linearGradient id="plate" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7a747b"/><stop offset=".25" stop-color="#353640"/><stop offset=".62" stop-color="#181b25"/><stop offset="1" stop-color="#090c13"/></linearGradient>
+<linearGradient id="steel" x1="0" y1="0" x2=".95" y2="1"><stop stop-color="#bbb3b0"/><stop offset=".23" stop-color="#535661"/><stop offset=".57" stop-color="#292c35"/><stop offset="1" stop-color="#12131a"/></linearGradient>
+<linearGradient id="plating" x1="0" y1="0" x2="1" y2=".15"><stop stop-color="#171923"/><stop offset=".5" stop-color="#66606a"/><stop offset="1" stop-color="#131620"/></linearGradient>
+<linearGradient id="crimson" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#ab384a"/><stop offset=".55" stop-color="#63182a"/><stop offset="1" stop-color="#260e1c"/></linearGradient>
+<linearGradient id="leather" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#734e3b"/><stop offset=".6" stop-color="#342322"/><stop offset="1" stop-color="#1d1519"/></linearGradient>
+</defs><path d="M411 488 Q465 481 514 491 L545 506 544 553 525 601 483 632 422 617 392 553 397 508Z" fill="#0e1018" stroke="#0a0c12" stroke-width="4"/>
+<path d="M398 503 L530 501 542 521 525 547 411 539Z" fill="url(#leather)" stroke="#a88f85" stroke-width="3"/>
+<path d="M411 515 Q480 529 538 513" fill="none" stroke="#e1bab1" stroke-opacity=".55" stroke-width="2.4"/>
+<path d="M505 504 L529 501 537 529 511 531Z" fill="url(#steel)" stroke="#bba09a" stroke-width="2.7"/>
+<path d="M513 510 L524 509 528 521 515 523Z" fill="#1c1118" stroke="#bd897b" stroke-width="1.4"/>
+<path d="M521 508 L523 522 517 525" stroke="#ef3a4f" stroke-width="2" fill="none"/>
+<path d="M402 536 L450 536 463 568 450 609 416 612 401 574Z" fill="url(#plate)" stroke="#a89a98" stroke-width="2.8"/>
+<path d="M464 538 L530 537 539 562 519 603 476 613 458 568Z" fill="url(#plating)" stroke="#9c898c" stroke-width="2.8"/>
+<path d="M418 545 L441 548 449 570 438 589 421 582Z" fill="url(#steel)" stroke="#16131b" stroke-width="2"/>
+<path d="M485 546 L522 547 526 565 511 588 482 593Z" fill="url(#plate)" stroke="#201a22" stroke-width="2"/>
+<path d="M443 579 L471 565 467 626 454 647 441 617Z" fill="url(#crimson)" stroke="#b04151" stroke-width="2"/>
+<path d="M484 584 L506 579 501 620 488 638 479 609Z" fill="#4c1627" stroke="#982f44" stroke-width="2"/>
+<path d="M413 540 L434 560 429 578 M520 549 L506 565 512 584" stroke="#c5ada9" stroke-opacity=".6" stroke-width="2" fill="none"/>
+<path d="M473 548 L478 563 472 585 M535 546 L525 561" stroke="#e03b4c" stroke-width="2.4" fill="none"/>
+<circle cx="422" cy="516" r="2.4" fill="#b8a4a1"/><circle cx="445" cy="519" r="2.4" fill="#b8a4a1"/><circle cx="470" cy="521" r="2.4" fill="#b8a4a1"/></svg>
