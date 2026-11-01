@@ -109,4 +109,14 @@ for p in parts:
     draw.ellipse((x-10,y-10,x+10,y+10),fill=(255,76,96))
     draw.text((x+20,y+5),p["id"],fill=(255,219,220))
 preview.save(QA/"portador_modular_v1_core_review.jpg",quality=91)
+# Mobile-friendly close-up from the same PNG layer composite, not a mockup.
+bbox=scene.getchannel("A").getbbox()
+if bbox:
+    pad=100
+    x0=max(0,bbox[0]-pad);y0=max(0,bbox[1]-pad)
+    x1=min(scene.width,bbox[2]+pad);y1=min(scene.height,bbox[3]+pad)
+    close=Image.new("RGB",(x1-x0,y1-y0),(19,22,31))
+    cut=scene.crop((x0,y0,x1,y1))
+    close.paste(cut,mask=cut.getchannel("A"))
+    close.save(QA/"portador_modular_v1_core_closeup.jpg",quality=93)
 print("DONE 4 PNG plus transparent assembly")
