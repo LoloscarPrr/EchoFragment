@@ -1,0 +1,57 @@
+name: Portador Modular v1 - New Core Assets
+on:
+  push:
+    branches: [feature/portador-modular-v1-clean]
+    paths: ['.github/workflows/portador-modular-v1-core.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Install deterministic vector and raster renderers
+        run: |
+          python3 -m pip install --user --break-system-packages cairosvg pillow
+      - name: Create 4 original transparent PNGs and neutral assembly
+        run: |
+          python3 tools/art/generate_portador_modular_v1_core.py
+      - name: Check PNG alpha, pivots, individual SVG and proportions
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from PIL import Image
+          root=Path('assets/player/portador_modular_v1')
+          m=json.loads((root/'manifest.json').read_text())
+          assert len(m['parts'])==4
+          assert len(list((root/'svg_source').glob('*.svg')))==4
+          for p in m['parts']:
+              name=p['file']
+              with Image.open(root/'png'/name) as img:
+                  assert img.mode=='RGBA'
+                  assert tuple(p['canvas_px'])==img.size
+                  assert img.getchannel('A').getextrema()==(0,255), name
+                  assert img.getchannel('A').getbbox(), name
+                  x,y=p['pivot_px']
+                  assert 0<=x<img.width and 0<=y<img.height
+                  print('OK',name,'size',img.size,'pivot',p['pivot_px'])
+          with Image.open('docs/animation/portador_modular_v1_core_neutral.png') as img:
+              assert img.mode=='RGBA'
+          PY
+      - name: Commit art to clean experimental branch only
+        run: |
+          git config user.name 'EchoFragment Art Build'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/player/portador_modular_v1/ docs/animation/portador_modular_v1_core*
+          if git diff --cached --quiet; then
+            echo 'No changes'
+          else
+            git commit -m 'assets(art): four new modular Portador pieces and static assembly'
+            git push origin HEAD:feature/portador-modular-v1-clean
+          fi
