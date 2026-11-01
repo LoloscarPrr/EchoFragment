@@ -1,0 +1,25 @@
+name: Modular Portador V1 - Godot Neutral Gate
+
+on:
+  push:
+    branches: [feature/portador-modular-v1-clean]
+    paths: ['.github/workflows/portador-modular-v1-godot-check.yml', 'scripts/player/PortadorModularCoreV1.gd', 'tests/modular_core_v1_test.gd']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-neutral:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Godot 4.3
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          chmod +x Godot_v4.3-stable_linux.x86_64
+      - name: Import project and parse scripts
+        run: ./Godot_v4.3-stable_linux.x86_64 --headless --path . --editor --quit
+      - name: Assert real PNGs, exact four bones and neutral stage
+        run: ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/modular_core_v1_test.gd
