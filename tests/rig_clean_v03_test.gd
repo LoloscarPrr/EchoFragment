@@ -30,6 +30,7 @@ func _run() -> void:
     check(all_sprites.size() == 22, "exactly 22 Sprite2D parts are instantiated")
     for part in all_sprites:
         check(part.texture != null, "non-null texture in " + part.name)
+        check(part.texture_filter == CanvasItem.TEXTURE_FILTER_NEAREST, "pixel filtering: " + part.name)
         check(not part.region_enabled, "independent art, not rectangular sampling: " + part.name)
         if part.texture != null:
             check(part.texture.get_width() >= 100, "art texture not completely empty: " + part.name)
@@ -49,6 +50,25 @@ func _run() -> void:
     if left_leg != null and right_leg != null:
         check(right_leg.position.x - left_leg.position.x > 90.0, "both thigh bones have separate hip anchors")
 
+    # Exercise every controller state in both directions across full timelines.
+    # Local joint anchors must stay fixed even when their parents rotate.
+    var anchors: Dictionary = {}
+    for key in rig._bones:
+        anchors[key] = rig._bones[key].position
+    for motion in [&"idle_ready", &"run_forward", &"jump_start", &"jump_rise", &"jump_apex", &"jump_fall", &"land_light", &"attack_light", &"dodge"]:
+        for direction in [-1.0, 1.0]:
+            for frame in range(61):
+                rig._time = float(frame) / 60.0
+                rig.configure(motion, float(frame) / 60.0, direction)
+                for key in rig._bones:
+                    var bone: Bone2D = rig._bones[key]
+                    check(bone.global_transform.is_finite(), "finite transform: " + str(key))
+                    if key != &"Hips":
+                        check(bone.position.is_equal_approx(anchors[key]), "joint stays attached: " + str(key))
+    rig.configure(&"jump_apex", 0.5, 1.0)
+    check(rig._bones[&"Hips"].position.y < 0.0, "apex retains airborne pose")
+    rig.configure(&"land_light", 1.0, 1.0)
+    check(absf(rig._bones[&"Hips"].position.y) < 0.001, "landing returns hips to neutral")
     rig.configure(&"idle_ready", 0.0, 1.0)
     rig.configure(&"run_forward", 0.52, -1.0)
     rig.configure(&"attack_light", 0.45, 1.0)

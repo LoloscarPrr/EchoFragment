@@ -103,6 +103,9 @@ func _bone(parent: Node2D, bone_name: StringName, local_offset: Vector2) -> Bone
     var bone := Bone2D.new()
     bone.name = String(bone_name)
     bone.position = local_offset
+    # Cutout bones have explicit anchors; do not infer length before children exist.
+    bone.set_autocalculate_length_and_angle(false)
+    bone.rest = bone.transform
     parent.add_child(bone)
     _bones[bone_name] = bone
     return bone

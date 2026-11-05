@@ -84,7 +84,7 @@ func _part(parent: Bone2D, art: String, source_pivot: Vector2, size_factor: floa
     var natural_height := 1024.0 if art == "head_helmet" or art == "torso_upper" or art == "pelvis_waist" else 1536.0
     sprite.scale = Vector2(size_factor * 1024.0 / float(texture.get_width()), size_factor * natural_height / float(texture.get_height()))
     sprite.position = -source_pivot * size_factor
-    sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+    sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
     sprite.z_index = depth
     parent.add_child(sprite)
 
@@ -108,3 +108,31 @@ func _apply_pose() -> void:
     left_thigh.rotation = clampf(left_thigh.rotation, -0.42, 0.42)
     right_thigh.rotation = clampf(right_thigh.rotation, -0.42, 0.42)
     torso.rotation = clampf(torso.rotation, -0.25, 0.36)
+
+    # Complete the controller's airborne states without moving the physics body.
+    # Start and landing both return to neutral at their final frame.
+    var hips := _bones[&"Hips"] as Bone2D
+    var helmet := _bones[&"Helmet"] as Bone2D
+    var cape := _bones[&"Cape"] as Bone2D
+    var cape_tip := _bones[&"CapeTip"] as Bone2D
+    match state:
+        &"jump_start", &"land_light":
+            var compression := sin(PI * state_progress)
+            hips.position.y = 10.0 * compression
+            torso.rotation = 0.10 * compression
+            helmet.rotation = -0.06 * compression
+            left_thigh.rotation = -0.14 * compression
+            right_thigh.rotation = -0.14 * compression
+            left_shin.rotation = 0.26 * compression
+            right_shin.rotation = 0.26 * compression
+        &"jump_apex":
+            hips.position.y = -14.0
+            left_thigh.rotation = 0.28
+            right_thigh.rotation = -0.34
+            left_shin.rotation = -0.26
+            right_shin.rotation = 0.32
+            cape.rotation = 0.12
+    # A child rotation adds lag while preserving the painted overlap.
+    cape_tip.rotation = sin(_time * 3.5 - 0.7) * 0.035
+    if state == &"run_forward":
+        cape_tip.rotation = -0.06 + sin(_time * 8.0 - 0.7) * 0.045
