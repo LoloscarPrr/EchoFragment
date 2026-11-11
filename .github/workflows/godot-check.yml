@@ -30,3 +30,7 @@ jobs:
       - name: Test contextual bow combo
         run: |
           ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/bow_combo_test.gd
+
+      - name: Test weapon skill trees
+        run: |
+          ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/weapon_skill_tree_test.gd
