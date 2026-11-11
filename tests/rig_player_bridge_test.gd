@@ -27,7 +27,7 @@ func _run() -> void:
         var rig = player.get_node_or_null("ArticulatedVisual")
         _check(rig != null, "Player attaches experimental visual bridge")
         if rig != null:
-            _check(rig is PortadorCleanRigV03, "Player bridge uses the anatomical 22-part v0.3 rig")
+            _check(rig is PortadorPoseVisual, "Player bridge uses the coherent full-body pixel poses")
             _check(not rig.demo_cycle, "Gameplay does not run showroom animation")
             player.enable_articulated_visual = true
             player.call("_update_visual", 1.0 / 60.0)

@@ -38,3 +38,7 @@ jobs:
       - name: Verify mockup environment, HUD and touch integration
         run: |
           ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/mockup_integration_test.gd
+
+      - name: Verify corrected Portador poses and combat synchronization
+        run: |
+          ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/portador_pose_visual_test.gd
