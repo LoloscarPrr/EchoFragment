@@ -26,3 +26,7 @@ jobs:
       - name: Test Tajo del Eco Phase 1.1 timing
         run: |
           ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/tajo_del_eco_timeline_test.gd
+
+      - name: Test contextual bow combo
+        run: |
+          ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/bow_combo_test.gd
