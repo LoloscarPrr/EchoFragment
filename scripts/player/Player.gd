@@ -337,7 +337,10 @@ func _bow_target_in_melee_range() -> bool:
 			continue
 		if not candidate.has_method("can_receive_damage") or not candidate.can_receive_damage():
 			continue
-		var delta: Vector2 = candidate.global_position - global_position
+		var target_body := candidate as Node2D
+		if target_body == null:
+			continue
+		var delta: Vector2 = target_body.global_position - global_position
 		if BowCombo.is_target_close(delta, facing, bow_melee_trigger_range):
 			return true
 	return false
