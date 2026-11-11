@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/portador-rig2d-prototype
+      - feature/bow-hybrid-rig-v041
   pull_request:
     branches:
       - main
@@ -42,3 +43,7 @@ jobs:
       - name: Verify corrected Portador poses and combat synchronization
         run: |
           ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/portador_pose_visual_test.gd
+
+      - name: Verify arrow stab kick and ranged shot sequencing
+        run: |
+          ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/bow_combo_test.gd

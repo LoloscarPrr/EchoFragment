@@ -22,6 +22,11 @@ func tick(is_grounded: bool, velocity: Vector2) -> void:
 	else:
 		_coyote_ticks_left = maxi(0, _coyote_ticks_left - 1)
 
+	# Timed states keep the melee impacts and bow release in sync with art.
+	if state in [&"bow_stab", &"bow_kick", &"bow_shot"] and state_tick < _duration_for(state):
+		state_tick += 1
+		_was_grounded = is_grounded
+		return
 	if state == &"attack_light" and state_tick < TajoDelEcoTimeline.ATTACK_TICKS:
 		state_tick += 1
 		_was_grounded = is_grounded
@@ -123,6 +128,9 @@ func _duration_for(value: StringName) -> int:
 		&"jump_fall": return 12
 		&"land_light": return 8
 		&"attack_light": return TajoDelEcoTimeline.ATTACK_TICKS
+		&"bow_stab": return 16
+		&"bow_kick": return 22
+		&"bow_shot": return 28
 		&"hit_light": return 14
 	return 1
 
