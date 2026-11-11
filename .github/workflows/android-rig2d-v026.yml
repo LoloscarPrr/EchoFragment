@@ -1,4 +1,4 @@
-name: Android Rig2D Anatomical Cutout v0.26 v0.26
+name: Android EchoFragment v0.4.0
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
     container:
       image: barichello/godot-ci:4.3
     steps:
-      - name: Checkout branch and nine PNGs
+      - name: Checkout corrected Portador and mockup environment
         uses: actions/checkout@v4
 
       - name: Configure Godot export templates
@@ -32,25 +32,27 @@ jobs:
 
       - name: Verify actual textured rig and player bridge
         run: |
-          godot --headless --path . --script res://tests/rig_full_v02_test.gd
+          godot --headless --path . --script res://tests/portador_pose_visual_test.gd
+          godot --headless --path . --script res://tests/mockup_integration_test.gd
+          godot --headless --path . --script res://tests/tajo_del_eco_timeline_test.gd
           godot --headless --path . --script res://tests/rig_player_bridge_test.gd
 
-      - name: Export Android APK v0.26
+      - name: Export Android APK v0.4.0
         env:
           GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /root/debug.keystore
           GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
           GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
           mkdir -p build
-          godot --headless --verbose --path . --export-debug "Android Playtest" build/EchoFragment-0.26-Rig2D-Anatomy.apk
-          test -s build/EchoFragment-0.26-Rig2D-Anatomy.apk
-          ls -lh build/EchoFragment-0.26-Rig2D-Anatomy.apk
+          godot --headless --verbose --path . --export-debug "Android Playtest" build/EchoFragment-0.4.0.apk
+          test -s build/EchoFragment-0.4.0.apk
+          ls -lh build/EchoFragment-0.4.0.apk
 
       - name: Upload APK for Android testing
         uses: actions/upload-artifact@v4
         with:
-          name: EchoFragment-0.26-Rig2D-Anatomy-APK
-          path: build/EchoFragment-0.26-Rig2D-Anatomy.apk
+          name: EchoFragment-0.4.0-APK
+          path: build/EchoFragment-0.4.0.apk
           if-no-files-found: error
           retention-days: 30
 
@@ -63,22 +65,22 @@ jobs:
       - name: Get signed APK without artifact ZIP
         uses: actions/download-artifact@v4
         with:
-          name: EchoFragment-0.26-Rig2D-Anatomy-APK
+          name: EchoFragment-0.4.0-APK
           path: dist
       - name: Publish direct APK as experimental prerelease
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          test -s dist/EchoFragment-0.26-Rig2D-Anatomy.apk
-          TAG="rig2d-preview-v0.26"
+          test -s dist/EchoFragment-0.4.0.apk
+          TAG="rig2d-preview-v0.4.0"
           if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
-            gh release upload "$TAG" dist/EchoFragment-0.26-Rig2D-Anatomy.apk --clobber --repo "$GH_REPO"
+            gh release upload "$TAG" dist/EchoFragment-0.4.0.apk --clobber --repo "$GH_REPO"
           else
-            gh release create "$TAG" dist/EchoFragment-0.26-Rig2D-Anatomy.apk \
+            gh release create "$TAG" dist/EchoFragment-0.4.0.apk \
               --repo "$GH_REPO" \
               --target "$GITHUB_SHA" \
-              --title "EchoFragment v0.26 - Portador Rig2D experimental" \
-              --notes "APK experimental v0.26: 22 partes transparentes independientes, mangas, codos, rodillas, muñecas, botas, casco y capa articulados; elimina Sprite2D.region_rect. Prueba de anatomia y costuras. Los PNG actuales son muestras de baja resolucion; NO son arte final. Main no fue fusionada." \
+              --title "EchoFragment v0.4.0 - Portador corregido" \
+              --notes "APK experimental v0.4.0: Portador corregido con 12 poses completas, escenario de ruinas del mockup, HUD y controles circulares. Animacion basica. Android arm64. Rama experimental." \
               --prerelease
           fi
