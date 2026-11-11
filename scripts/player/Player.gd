@@ -254,8 +254,12 @@ func _attack_sword(now: float) -> void:
 	var damage_values := [18, 22, finisher_damage]
 	var lock_values := [0.24, 0.28, 0.40]
 	var reach_values := [58.0, 64.0, 72.0]
-	hitbox.damage = damage_values[_combo_step - 1]
+	var base_bonus := 4 if progression.has_skill(&"sword_edge") else 0
+	var final_bonus := 14 if _combo_step == 3 and progression.has_skill(&"sword_finale") else 0
+	hitbox.damage = damage_values[_combo_step - 1] + base_bonus + final_bonus
 	hitbox.knockback = 180.0 + (_combo_step * 35.0)
+	if progression.has_skill(&"sword_stagger"):
+		hitbox.knockback += 60.0
 	if _combo_step == 3 and progression.has_skill(&"sword_riposte"):
 		hitbox.knockback += 80.0
 	hitbox.position.x = reach_values[_combo_step - 1] * facing
@@ -279,11 +283,15 @@ func _attack_daggers(now: float) -> void:
 	combo_changed.emit(_combo_step)
 
 	hitbox.damage = 9 + (_combo_step * 2)
+	if progression.has_skill(&"daggers_precision"):
+		hitbox.damage += 4
+	if _combo_step == 4 and progression.has_skill(&"daggers_execution"):
+		hitbox.damage += 8
 	hitbox.knockback = 90.0
 	hitbox.position.x = 46.0 * facing
 	_attack_locked_until = now + (0.10 if progression.has_skill(&"daggers_flurry") else 0.14)
 	hitbox.strike(global_position)
-	velocity.x += facing * 35.0
+	velocity.x += facing * (68.0 if progression.has_skill(&"daggers_lunge") else 35.0)
 
 	var tween := create_tween()
 	tween.tween_property(visual, "rotation", 0.14 * facing * (1 if _combo_step % 2 == 1 else -1), 0.05)
@@ -347,6 +355,10 @@ func _bow_target_in_melee_range() -> bool:
 
 
 func _queue_bow_melee(now: float, delay: float, damage: int, knockback: float, reach: float) -> void:
+	if progression.has_skill(&"bow_sweep"):
+		damage += 4
+		knockback += 70.0
+		reach += 22.0
 	hitbox.damage = damage
 	hitbox.knockback = knockback
 	hitbox.position.x = reach * facing
@@ -355,11 +367,17 @@ func _queue_bow_melee(now: float, delay: float, damage: int, knockback: float, r
 
 func _queue_bow_shot(now: float, finisher: bool = false) -> void:
 	animation_controller.set_state(&"bow_shot")
-	_attack_locked_until = now + (0.46 if finisher else 0.48)
+	var recovery := 0.46 if finisher else 0.48
+	if progression.has_skill(&"bow_quickdraw"):
+		recovery = 0.38 if finisher else 0.36
+	_attack_locked_until = now + recovery
 	_bow_projectile_damage = (34 if finisher else 28) if progression.has_skill(&"bow_piercing") else (26 if finisher else 20)
 	_bow_projectile_speed = 780.0 if progression.has_skill(&"bow_piercing") else 650.0
 	_bow_projectile_knockback = (220.0 if finisher else 160.0) if progression.has_skill(&"bow_piercing") else (200.0 if finisher else 130.0)
-	_bow_projectile_queued_at = now + 0.17
+	if finisher and progression.has_skill(&"bow_finisher"):
+		_bow_projectile_damage += 12
+		_bow_projectile_speed += 65.0
+	_bow_projectile_queued_at = now + (0.11 if progression.has_skill(&"bow_quickdraw") else 0.17)
 
 
 func _process_pending_bow_attack(now: float) -> void:
@@ -394,15 +412,21 @@ func _cancel_bow_attack() -> void:
 	_reset_bow_combo()
 
 func _attack_staff(now: float) -> void:
-	if not _spend_stamina(20.0):
+	var spell_cost := 14.0 if progression.has_skill(&"staff_focus") else 20.0
+	if not _spend_stamina(spell_cost):
 		return
 	_combo_step = 0
 	combo_changed.emit(0)
 	_last_attack_time = now
-	_attack_locked_until = now + 0.62
+	_attack_locked_until = now + (0.50 if progression.has_skill(&"staff_channel") else 0.62)
 	var spell_damage := 40 if progression.has_skill(&"staff_overcharge") else 28
 	var spell_knockback := 320.0 if progression.has_skill(&"staff_overcharge") else 230.0
-	_spawn_projectile(arcane_scene, spell_damage, 430.0, spell_knockback)
+	var spell_speed := 430.0
+	if progression.has_skill(&"staff_echo"):
+		spell_damage += 10
+		spell_knockback += 90.0
+		spell_speed += 80.0
+	_spawn_projectile(arcane_scene, spell_damage, spell_speed, spell_knockback)
 
 	var tween := create_tween()
 	tween.tween_property(visual, "rotation", -0.14 * facing, 0.15)
@@ -485,6 +509,10 @@ func add_experience(amount: int) -> void:
 	progression_changed.emit()
 
 func unlock_skill(skill_id: StringName) -> bool:
+	# A weapon tree cannot be purchased before its weapon has been found.
+	var item: StringName = SkillCatalog.weapon_item(skill_id)
+	if item != &"" and not inventory.has_item(item):
+		return false
 	var unlocked: bool = progression.unlock(skill_id)
 	if unlocked:
 		progression_changed.emit()
