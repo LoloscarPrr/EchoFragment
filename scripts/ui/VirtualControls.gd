@@ -3,6 +3,8 @@ extends CanvasLayer
 # Direct multi-finger touchscreen controller. Each touch ID is independent.
 # GUI buttons remain as visual targets but do not intercept Android fingers.
 const ACTIONS := ["move_left", "move_right", "jump", "attack", "dodge", "interact", "inventory", "skills"]
+@export var touch_controls_preview := false
+
 var _buttons: Array[Button] = []
 var _touch_owner: Dictionary = {}
 var _action_holders: Dictionary = {}
@@ -17,7 +19,8 @@ func _ready() -> void:
 		var button: Button = _buttons[index]
 		var action: String = ACTIONS[index]
 		button.focus_mode = Control.FOCUS_NONE
-		if OS.has_feature("mobile"):
+		_skin_action_button(button)
+		if (OS.has_feature("mobile") or touch_controls_preview):
 			button.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			if index < 2:
 				button.visible = false
@@ -26,7 +29,7 @@ func _ready() -> void:
 			button.button_up.connect(_on_mouse_button.bind(action, false))
 
 	# The joystick occupies the old left/right area, with generous thumb travel.
-	if OS.has_feature("mobile"):
+	if (OS.has_feature("mobile") or touch_controls_preview):
 		_joystick = Control.new()
 		_joystick.set_script(preload("res://scripts/ui/JoystickVisual.gd"))
 		$Root.add_child(_joystick)
@@ -41,7 +44,7 @@ func _ready() -> void:
 		_joystick.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _input(event: InputEvent) -> void:
-	if not OS.has_feature("mobile"):
+	if not (OS.has_feature("mobile") or touch_controls_preview):
 		return
 	if not visible:
 		_release_all()
@@ -96,7 +99,7 @@ func _set_joystick_axis(axis: int) -> void:
 
 # Player reads direction directly, independently of synthetic input actions.
 func get_touch_axis() -> float:
-	if not visible or not OS.has_feature("mobile"):
+	if not visible or not (OS.has_feature("mobile") or touch_controls_preview):
 		return 0.0
 	var left: bool = _action_holders.has("move_left")
 	var right: bool = _action_holders.has("move_right")
@@ -162,3 +165,32 @@ func _exit_tree() -> void:
 	for action in _mouse_actions.keys():
 		_send_action(str(action), false)
 	_mouse_actions.clear()
+
+# Circular controls follow the approved mockup while retaining actual actions.
+func _skin_action_button(button: Button) -> void:
+	for state_name in ["normal", "hover", "pressed", "disabled", "focus"]:
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0.10, 0.07, 0.13, 0.68)
+		style.border_color = Color("a88a9b")
+		if state_name == "pressed":
+			style.bg_color = Color(0.42, 0.08, 0.15, 0.85)
+			style.border_color = Color("e6b2bb")
+		style.set_border_width_all(2)
+		style.set_corner_radius_all(64)
+		button.add_theme_stylebox_override(state_name, style)
+	button.add_theme_color_override("font_color", Color("e0cbd5"))
+	button.add_theme_font_size_override("font_size", 16)
+	# Small menu controls sit above the action cluster, not across the world.
+	var layout := {
+		"Attack": Rect2(-156, -152, 120, 120),
+		"Jump": Rect2(-112, -266, 86, 86),
+		"Dodge": Rect2(-254, -210, 86, 86),
+		"Skills": Rect2(-215, -314, 76, 76),
+		"Inventory": Rect2(-352, -116, 76, 76),
+	}
+	if layout.has(button.name):
+		var box: Rect2 = layout[button.name]
+		button.offset_left = box.position.x
+		button.offset_top = box.position.y
+		button.offset_right = box.end.x
+		button.offset_bottom = box.end.y

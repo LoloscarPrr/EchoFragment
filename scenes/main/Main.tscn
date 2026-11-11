@@ -1,7 +1,7 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scripts/main/Main.gd" id="1_main"]
-[ext_resource type="Script" path="res://scripts/world/ValleGrisAtmosphere.gd" id="14_atmosphere"]
+[ext_resource type="Script" path="res://scripts/world/RuinasDelEcoBackdrop.gd" id="14_atmosphere"]
 [ext_resource type="Script" path="res://scripts/enemies/EnemyVisualDetail.gd" id="15_enemy_detail"]
 [ext_resource type="Script" path="res://scripts/player/Player.gd" id="2_player"]
 [ext_resource type="Script" path="res://scripts/enemies/Enemy.gd" id="3_enemy"]
@@ -15,6 +15,8 @@
 [ext_resource type="Script" path="res://scripts/ui/InventoryPanel.gd" id="11_inventory"]
 [ext_resource type="Script" path="res://scripts/ui/SkillsPanel.gd" id="12_skills"]
 [ext_resource type="Script" path="res://scripts/enemies/FragmentedKnight.gd" id="13_boss"]
+
+[ext_resource type="Script" path="res://scripts/ui/GothicHUD.gd" id="16_gothic_hud"]
 
 [sub_resource type="RectangleShape2D" id="PlayerShape"]
 size = Vector2(44, 84)
@@ -42,6 +44,7 @@ polygon = PackedVector2Array(-500, -200, 4200, -200, 4200, 720, -500, 720)
 color = Color(0.07, 0.09, 0.13, 1)
 
 [node name="FarRuins" type="Polygon2D" parent="."]
+visible = false
 polygon = PackedVector2Array(0, 550, 160, 390, 290, 520, 410, 330, 560, 520, 780, 370, 930, 530, 1100, 310, 1290, 520, 1500, 360, 1740, 520, 1960, 340, 2200, 540, 2200, 640, 0, 640)
 color = Color(0.13, 0.16, 0.22, 1)
 
@@ -53,6 +56,7 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="GroundVisual" type="Polygon2D" parent="Ground"]
+visible = false
 polygon = PackedVector2Array(-300, 0, 3900, 0, 3900, 90, -300, 90)
 position = Vector2(1800, 640)
 color = Color(0.16, 0.19, 0.18, 1)
@@ -402,6 +406,7 @@ text = "VALLE GRIS →"
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="HUD" type="Control" parent="UI"]
+script = ExtResource("16_gothic_hud")
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

@@ -1,0 +1,65 @@
+[
+  {
+    "file": "portador_head_helmet.png",
+    "width": 200,
+    "height": 200,
+    "source": "Canva thumbnail",
+    "preview_quality": true
+  },
+  {
+    "file": "portador_torso_upper.png",
+    "width": 200,
+    "height": 200,
+    "source": "Canva thumbnail",
+    "preview_quality": true
+  },
+  {
+    "file": "portador_pelvis_waist.png",
+    "width": 200,
+    "height": 200,
+    "source": "Canva thumbnail",
+    "preview_quality": true
+  },
+  {
+    "file": "portador_arm_R.png",
+    "width": 133,
+    "height": 200,
+    "source": "Canva thumbnail",
+    "preview_quality": true
+  },
+  {
+    "file": "portador_arm_L.png",
+    "width": 133,
+    "height": 200,
+    "source": "Canva thumbnail",
+    "preview_quality": true
+  },
+  {
+    "file": "portador_leg_R.png",
+    "width": 133,
+    "height": 200,
+    "source": "Canva thumbnail",
+    "preview_quality": true
+  },
+  {
+    "file": "portador_leg_L.png",
+    "width": 133,
+    "height": 200,
+    "source": "Canva thumbnail",
+    "preview_quality": true
+  },
+  {
+    "file": "portador_cape.png",
+    "width": 133,
+    "height": 200,
+    "source": "Canva thumbnail",
+    "preview_quality": true
+  },
+  {
+    "file": "portador_sword.png",
+    "width": 133,
+    "height": 200,
+    "source": "Canva thumbnail",
+    "preview_quality": true
+  }
+]

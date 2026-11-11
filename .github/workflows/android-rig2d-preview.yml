@@ -1,0 +1,81 @@
+name: Android Rig2D Preview v0.23
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-rig-preview:
+    runs-on: ubuntu-24.04
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - name: Checkout branch and nine PNGs
+        uses: actions/checkout@v4
+
+      - name: Configure Godot export templates
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/
+          mkdir -p ~/.config/
+          mv /root/.config/godot ~/.config/godot
+          mv /root/.local/share/godot/export_templates/4.3.stable ~/.local/share/godot/export_templates/4.3.stable
+          test -f /root/debug.keystore
+
+      - name: Import art and validate all scripts
+        run: |
+          godot --headless --path . --editor --quit
+
+      - name: Verify actual textured rig and player bridge
+        run: |
+          godot --headless --path . --script res://tests/rig_full_v02_test.gd
+          godot --headless --path . --script res://tests/rig_player_bridge_test.gd
+
+      - name: Export Android APK v0.23
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /root/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
+        run: |
+          mkdir -p build
+          godot --headless --verbose --path . --export-debug "Android Playtest" build/EchoFragment-0.23-Rig2D.apk
+          test -s build/EchoFragment-0.23-Rig2D.apk
+          ls -lh build/EchoFragment-0.23-Rig2D.apk
+
+      - name: Upload APK for Android testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: EchoFragment-0.23-Rig2D-APK
+          path: build/EchoFragment-0.23-Rig2D.apk
+          if-no-files-found: error
+          retention-days: 30
+
+  publish-direct-apk:
+    needs: build-rig-preview
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Get signed APK without artifact ZIP
+        uses: actions/download-artifact@v4
+        with:
+          name: EchoFragment-0.23-Rig2D-APK
+          path: dist
+      - name: Publish direct APK as experimental prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          test -s dist/EchoFragment-0.23-Rig2D.apk
+          TAG="rig2d-preview-v0.23"
+          if gh release view "$TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/EchoFragment-0.23-Rig2D.apk --clobber --repo "$GH_REPO"
+          else
+            gh release create "$TAG" dist/EchoFragment-0.23-Rig2D.apk \
+              --repo "$GH_REPO" \
+              --target "$GITHUB_SHA" \
+              --title "EchoFragment v0.23 - Portador Rig2D experimental" \
+              --notes "APK Android de prueba. Incluye nueve imagenes reales del Portador del Eco integradas con Skeleton2D; Canva solo permitio previews de 200 px, por lo que el arte es provisional. No fusionado a main." \
+              --prerelease
+          fi

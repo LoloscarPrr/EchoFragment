@@ -1,0 +1,173 @@
+{
+  "source": "Approved Portador del Eco mockup; generated coherent whole-body pose atlas.",
+  "frames": [
+    {
+      "name": "idle",
+      "region": [
+        0,
+        0,
+        362,
+        362
+      ],
+      "pivot": [
+        201,
+        323
+      ],
+      "scale": 0.72
+    },
+    {
+      "name": "run_contact_L",
+      "region": [
+        362,
+        0,
+        362,
+        362
+      ],
+      "pivot": [
+        218,
+        322
+      ],
+      "scale": 0.72
+    },
+    {
+      "name": "run_pass_L",
+      "region": [
+        724,
+        0,
+        362,
+        362
+      ],
+      "pivot": [
+        222,
+        323
+      ],
+      "scale": 0.72
+    },
+    {
+      "name": "run_contact_R",
+      "region": [
+        1086,
+        0,
+        362,
+        362
+      ],
+      "pivot": [
+        230,
+        324
+      ],
+      "scale": 0.72
+    },
+    {
+      "name": "run_pass_R",
+      "region": [
+        0,
+        362,
+        362,
+        362
+      ],
+      "pivot": [
+        231,
+        323
+      ],
+      "scale": 0.72
+    },
+    {
+      "name": "rise",
+      "region": [
+        362,
+        362,
+        362,
+        362
+      ],
+      "pivot": [
+        222,
+        323
+      ],
+      "scale": 0.72
+    },
+    {
+      "name": "apex",
+      "region": [
+        724,
+        362,
+        362,
+        362
+      ],
+      "pivot": [
+        220,
+        323
+      ],
+      "scale": 0.72
+    },
+    {
+      "name": "fall",
+      "region": [
+        1086,
+        362,
+        362,
+        362
+      ],
+      "pivot": [
+        224,
+        323
+      ],
+      "scale": 0.72
+    },
+    {
+      "name": "attack_windup",
+      "region": [
+        0,
+        724,
+        362,
+        362
+      ],
+      "pivot": [
+        192,
+        312
+      ],
+      "scale": 0.72
+    },
+    {
+      "name": "attack_active",
+      "region": [
+        362,
+        724,
+        362,
+        362
+      ],
+      "pivot": [
+        191,
+        312
+      ],
+      "scale": 0.72
+    },
+    {
+      "name": "attack_recovery",
+      "region": [
+        724,
+        724,
+        362,
+        362
+      ],
+      "pivot": [
+        214,
+        312
+      ],
+      "scale": 0.72
+    },
+    {
+      "name": "dodge",
+      "region": [
+        1086,
+        724,
+        362,
+        362
+      ],
+      "pivot": [
+        241,
+        312
+      ],
+      "scale": 0.72
+    }
+  ]
+}
