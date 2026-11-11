@@ -5,16 +5,18 @@ var anim_state: StringName = &"idle_ready"
 var facing := 1.0
 var state_progress := 0.0
 var drawing_index := 0
+var bow_equipped := false
 var _time := 0.0
 
 func _process(delta: float) -> void:
 	_time += delta
 	queue_redraw()
 
-func configure(state: StringName, progress: float, direction: float, frame_index: int = 0) -> void:
+func configure(state: StringName, progress: float, direction: float, frame_index: int = 0, using_bow: bool = false) -> void:
 	anim_state = state
 	state_progress = progress
 	drawing_index = frame_index
+	bow_equipped = using_bow
 	if direction != 0.0:
 		facing = signf(direction)
 	queue_redraw()
@@ -64,6 +66,14 @@ func _draw() -> void:
 		Vector2((17 + stride) * flip, 49 + crouch), Vector2((6 + stride) * flip, 49 + crouch)
 	]), dark)
 
+	# The kick visibly extends the leading boot before the bow finisher.
+	if bow_equipped and anim_state == &"bow_kick":
+		var extension := sin(PI * clampf(state_progress, 0.0, 1.0))
+		var hip := Vector2(10.0 * flip, 23.0 + crouch)
+		var boot := Vector2((23.0 + 53.0 * extension) * flip, 37.0 - 25.0 * extension + crouch)
+		draw_line(hip, boot, metal, 12.0)
+		draw_line(hip + Vector2(0, 3), boot + Vector2(4.0 * flip, 3), dark, 7.0)
+
 	# Torso armor.
 	draw_colored_polygon(PackedVector2Array([
 		Vector2(-19 * flip, -23 + crouch), Vector2(18 * flip, -23 + crouch),
@@ -86,15 +96,54 @@ func _draw() -> void:
 	draw_line(Vector2(-24 * flip, 5 + crouch), Vector2(-25 * flip, 14 + crouch), echo, 3.0)
 	draw_circle(Vector2(-25 * flip, 14 + crouch), 3.5, echo)
 
-	# Sword arm.
-	draw_line(Vector2(15 * flip, -10 + crouch), sword_offset + Vector2(2 * flip, 5 + crouch), metal, 8.0)
+	# Display a physical bow and arrow, not the sword silhouette.
+	# These vector poses are fallback art until the supplied pixel-art atlas is cut.
 	var hilt := sword_offset + Vector2(0, crouch)
-	var blade_len := 66.0
-	var dir := Vector2(cos(sword_angle) * flip, sin(sword_angle))
-	var tip := hilt + dir * blade_len
-	draw_line(hilt, tip, Color(0.72, 0.77, 0.82), 6.0)
-	draw_line(hilt - Vector2(0, 7), hilt + Vector2(0, 7), metal, 4.0)
-	draw_circle(hilt, 3.0, echo)
+	if bow_equipped:
+		var hand := Vector2(26.0 * flip, -8.0 + crouch)
+		var bow_grip := Vector2(-25.0 * flip, 4.0 + crouch)
+		if anim_state == &"bow_stab":
+			var stab_extension := sin(PI * clampf(state_progress, 0.0, 1.0))
+			hand.x = (26.0 + 36.0 * stab_extension) * flip
+			hand.y = -6.0 + crouch
+		elif anim_state == &"bow_shot":
+			bow_grip = Vector2(47.0 * flip, -11.0 + crouch)
+			hand = Vector2(11.0 * flip, -11.0 + crouch)
+			draw_line(Vector2(-15.0 * flip, -10.0 + crouch), bow_grip, metal, 7.0)
+
+		draw_line(Vector2(15.0 * flip, -10.0 + crouch), hand, metal, 8.0)
+		var bow_tip_top := bow_grip + Vector2(4.0 * flip, -31.0)
+		var bow_tip_bottom := bow_grip + Vector2(4.0 * flip, 31.0)
+		draw_polyline(PackedVector2Array([
+			bow_tip_top, bow_grip + Vector2(17.0 * flip, -14.0),
+			bow_grip + Vector2(20.0 * flip, 0.0),
+			bow_grip + Vector2(17.0 * flip, 14.0), bow_tip_bottom
+		]), Color("#AA793B"), 5.0)
+		draw_line(bow_tip_top, bow_tip_bottom, Color("#D5C8A9"), 1.2)
+
+		if anim_state == &"bow_stab":
+			draw_line(hand + Vector2(-8.0 * flip, 0), hand + Vector2(39.0 * flip, -3.0), Color("#C7CDD6"), 3.0)
+			draw_colored_polygon(PackedVector2Array([
+				hand + Vector2(36.0 * flip, -7.0),
+				hand + Vector2(47.0 * flip, -3.0),
+				hand + Vector2(36.0 * flip, 1.0)
+			]), Color("#E3E6EF"))
+		elif anim_state == &"bow_shot":
+			var draw_ratio := minf(1.0, state_progress * 1.2)
+			var nock := Vector2(12.0 * flip, -11.0 + crouch)
+			draw_line(bow_tip_top, nock, Color("#D5C8A9"), 1.2)
+			draw_line(bow_tip_bottom, nock, Color("#D5C8A9"), 1.2)
+			draw_line(nock, bow_grip + Vector2(35.0 * flip, 0), Color("#D1D5DE"), 3.0)
+			draw_circle(nock, 2.0 + 2.0 * draw_ratio, Color("#A72D3E"))
+	else:
+		# Original sword fallback remains unchanged for the other equipment.
+		draw_line(Vector2(15 * flip, -10 + crouch), sword_offset + Vector2(2 * flip, 5 + crouch), metal, 8.0)
+		var blade_len := 66.0
+		var dir := Vector2(cos(sword_angle) * flip, sin(sword_angle))
+		var tip := hilt + dir * blade_len
+		draw_line(hilt, tip, Color(0.72, 0.77, 0.82), 6.0)
+		draw_line(hilt - Vector2(0, 7), hilt + Vector2(0, 7), metal, 4.0)
+		draw_circle(hilt, 3.0, echo)
 
 	# Animated scarf and coat stitching accentuate direction and momentum.
 	var flutter := sin(_time * 8.0) * 3.0
@@ -111,7 +160,7 @@ func _draw() -> void:
 	draw_line(Vector2(11 * flip, 13 + crouch), Vector2((13 + coat_swing) * flip, 35 + crouch), Color(0.57, 0.25, 0.30, 0.78), 2.0)
 
 	# An arc follows the sword's active attack poses; purely visual, no hitbox change.
-	if anim_state == &"attack_light" and drawing_index >= 2 and drawing_index <= 4:
+	if not bow_equipped and anim_state == &"attack_light" and drawing_index >= 2 and drawing_index <= 4:
 		var arc_alpha := 0.42 if drawing_index == 3 else 0.22
 		var center := hilt + Vector2(14.0 * flip, 0)
 		draw_arc(center, 67.0, -0.83 if flip > 0 else PI - 0.83, 0.65 if flip > 0 else PI + 0.65, 19, Color(0.93, 0.23, 0.31, arc_alpha), 5.0)
