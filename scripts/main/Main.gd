@@ -51,6 +51,16 @@ func _ready() -> void:
 	for pickup in get_tree().get_nodes_in_group("item_pickup"):
 		pickup.picked_up.connect(_on_item_picked_up)
 
+	# Road ambush now includes a small pack for testing multi-target attacks.
+	# Spawn before signals are wired, so every enemy can grant experience.
+	var raider_template := $RoadRaider as CharacterBody2D
+	if is_instance_valid(raider_template):
+		for index in range(2):
+			var companion := raider_template.duplicate() as CharacterBody2D
+			companion.name = "RoadRaiderAlly%d" % (index + 1)
+			companion.position = Vector2(1725.0 if index == 0 else 1975.0, 565.0)
+			add_child(companion)
+
 	for enemy in get_tree().get_nodes_in_group("enemy"):
 		if enemy.has_signal("died"):
 			enemy.died.connect(_on_enemy_died)

@@ -18,6 +18,7 @@ var state := State.IDLE
 var target: CharacterBody2D
 var _state_until := 0.0
 var _attack_counter := 0
+var _knockback_until := -1.0
 
 @onready var visual: Polygon2D = $Visual
 @onready var hitbox: CombatHitbox = $AttackHitbox
@@ -40,6 +41,13 @@ func _physics_process(delta: float) -> void:
 	var now := Time.get_ticks_msec() / 1000.0
 	var distance_x := target.global_position.x - global_position.x
 	var distance := absf(distance_x)
+
+	# Keep the kick impulse for a brief physics window rather than letting
+	# CHASE / RECOVER erase the knockback on the very next frame.
+	if now < _knockback_until:
+		velocity.x = move_toward(velocity.x, 0.0, 600.0 * delta)
+		move_and_slide()
+		return
 
 	match state:
 		State.IDLE:
@@ -108,6 +116,7 @@ func take_damage(amount: int, source_position := Vector2.ZERO, knockback := 220.
 		if knock_dir == 0.0:
 			knock_dir = 1.0
 	velocity.x = knock_dir * knockback
+	_knockback_until = Time.get_ticks_msec() / 1000.0 + (0.25 if knockback >= 350.0 else 0.12)
 
 	var tween := create_tween()
 	tween.tween_property(visual, "modulate:a", 0.2, 0.05)

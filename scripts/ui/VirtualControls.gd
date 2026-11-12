@@ -43,6 +43,21 @@ func _ready() -> void:
 		_joystick.offset_bottom = -16.0
 		_joystick.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
+func _process(_delta: float) -> void:
+	# Simple on-button charge meter. Every finger keeps its independent action.
+	if not visible:
+		return
+	var fighter := get_parent().get_node_or_null("Player")
+	if fighter == null or not fighter.has_method("get_bow_charge_fraction"):
+		return
+	var attack_button := $Root/Attack as Button
+	if fighter.weapon_mode == 1:
+		var charge: float = fighter.get_bow_charge_fraction()
+		attack_button.text = "CARGA %d%%" % roundi(charge * 100.0) if charge > 0.03 else "FLECHA"
+	else:
+		attack_button.text = "ATACAR"
+
+
 func _input(event: InputEvent) -> void:
 	if not (OS.has_feature("mobile") or touch_controls_preview):
 		return

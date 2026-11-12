@@ -6,17 +6,19 @@ var facing := 1.0
 var state_progress := 0.0
 var drawing_index := 0
 var bow_equipped := false
+var bow_charge_fraction := 0.0
 var _time := 0.0
 
 func _process(delta: float) -> void:
 	_time += delta
 	queue_redraw()
 
-func configure(state: StringName, progress: float, direction: float, frame_index: int = 0, using_bow: bool = false) -> void:
+func configure(state: StringName, progress: float, direction: float, frame_index: int = 0, using_bow: bool = false, charge: float = 0.0) -> void:
 	anim_state = state
 	state_progress = progress
 	drawing_index = frame_index
 	bow_equipped = using_bow
+	bow_charge_fraction = clampf(charge, 0.0, 1.0)
 	if direction != 0.0:
 		facing = signf(direction)
 	queue_redraw()
@@ -106,9 +108,9 @@ func _draw() -> void:
 			var stab_extension := sin(PI * clampf(state_progress, 0.0, 1.0))
 			hand.x = (26.0 + 36.0 * stab_extension) * flip
 			hand.y = -6.0 + crouch
-		elif anim_state == &"bow_shot":
+		elif anim_state == &"bow_shot" or anim_state == &"bow_draw":
 			bow_grip = Vector2(47.0 * flip, -11.0 + crouch)
-			hand = Vector2(11.0 * flip, -11.0 + crouch)
+			hand = Vector2((30.0 - 27.0 * bow_charge_fraction) * flip, -11.0 + crouch)
 			draw_line(Vector2(-15.0 * flip, -10.0 + crouch), bow_grip, metal, 7.0)
 
 		draw_line(Vector2(15.0 * flip, -10.0 + crouch), hand, metal, 8.0)
@@ -128,13 +130,15 @@ func _draw() -> void:
 				hand + Vector2(47.0 * flip, -3.0),
 				hand + Vector2(36.0 * flip, 1.0)
 			]), Color("#E3E6EF"))
-		elif anim_state == &"bow_shot":
-			var draw_ratio := minf(1.0, state_progress * 1.2)
-			var nock := Vector2(12.0 * flip, -11.0 + crouch)
+		elif anim_state == &"bow_shot" or anim_state == &"bow_draw":
+			var draw_ratio := bow_charge_fraction if anim_state == &"bow_draw" else minf(1.0, state_progress * 1.2)
+			var nock := Vector2((30.0 - 27.0 * draw_ratio) * flip, -11.0 + crouch)
 			draw_line(bow_tip_top, nock, Color("#D5C8A9"), 1.2)
 			draw_line(bow_tip_bottom, nock, Color("#D5C8A9"), 1.2)
 			draw_line(nock, bow_grip + Vector2(35.0 * flip, 0), Color("#D1D5DE"), 3.0)
-			draw_circle(nock, 2.0 + 2.0 * draw_ratio, Color("#A72D3E"))
+			draw_circle(nock, 2.0 + 4.0 * draw_ratio, Color("#D93246"))
+			if anim_state == &"bow_draw" and draw_ratio > 0.12:
+				draw_arc(nock, 9.0 + draw_ratio * 10.0, 0.0, TAU, 24, Color(1.0, 0.38, 0.28, draw_ratio * 0.65), 2.0)
 	else:
 		# Original sword fallback remains unchanged for the other equipment.
 		draw_line(Vector2(15 * flip, -10 + crouch), sword_offset + Vector2(2 * flip, 5 + crouch), metal, 8.0)
