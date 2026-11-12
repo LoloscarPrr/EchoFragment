@@ -54,7 +54,7 @@ func configure(state: StringName, _progress: float, facing: float, reference_fra
 			next_stance = &"guard"
 	if next_stance != _stance:
 		_stance = next_stance
-	_update_sprite()
+		_update_sprite()
 	else:
 		_update_facing_and_anchor()
 
