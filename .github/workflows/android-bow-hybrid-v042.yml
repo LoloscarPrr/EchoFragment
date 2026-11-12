@@ -2,7 +2,7 @@ name: Android EchoFragment v0.4.2 - Crowd and Charge
 
 on:
   push:
-    branches: [feature/bow-hybrid-rig-v042]
+    branches: [feature/bow-combat-v042]
     paths: ['.github/workflows/android-bow-hybrid-v042.yml']
   workflow_dispatch:
 
