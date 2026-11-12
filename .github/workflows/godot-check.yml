@@ -38,3 +38,7 @@ jobs:
       - name: Test weapon action rules
         run: |
           ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/weapon_actions_test.gd
+
+      - name: Verify weapon buttons and shields in live scene
+        run: |
+          ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/weapon_actions_scene_test.gd
