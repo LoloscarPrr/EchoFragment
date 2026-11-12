@@ -57,6 +57,13 @@ var _bow_projectile_queued_at := -1.0
 var _bow_projectile_damage := 20
 var _bow_projectile_speed := 650.0
 var _bow_projectile_knockback := 130.0
+var _bow_projectile_charge := 0.0
+var _bow_hold_since := -1.0
+var _bow_hold_is_melee := false
+var _bow_hold_is_finisher := false
+var _bow_queued_charge := -1.0
+var _bow_queued_finisher := false
+var _bow_attack_shape: RectangleShape2D
 
 @onready var visual: Polygon2D = $Visual
 @onready var hitbox: CombatHitbox = $AttackHitbox
@@ -69,6 +76,12 @@ func _ready() -> void:
 	health = max_health
 	stamina = max_stamina
 	_visual_base_scale = visual.scale
+	# This scene reuses the same shape resource for enemy hitboxes.
+	# Duplicate the player's shape before expanding the bow sweep.
+	var bow_shape_node := hitbox.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if bow_shape_node != null and bow_shape_node.shape is RectangleShape2D:
+		_bow_attack_shape = bow_shape_node.shape.duplicate() as RectangleShape2D
+		bow_shape_node.shape = _bow_attack_shape
 	proxy_visual = ProtagonistProxyVisual.new()
 	add_child(proxy_visual)
 	canonical_visual = CanonicalProtagonistVisual.new()
@@ -135,12 +148,15 @@ func _physics_process(delta: float) -> void:
 	if can_control and Input.is_action_just_pressed("dodge"):
 		_try_dodge(direction, now)
 
+	_tick_bow_hold(now)
 	if can_control and Input.is_action_just_pressed("attack"):
-		animation_controller.buffer_action(&"attack")
+		if weapon_mode != WeaponMode.BOW or _bow_hold_is_melee:
+			animation_controller.buffer_action(&"attack")
 
 	if can_control and animation_controller.has_buffered(&"attack") and now >= _attack_locked_until:
 		animation_controller.consume_buffered(&"attack")
 		_try_attack(now)
+	_process_queued_bow_shot(now)
 
 	move_and_slide()
 	animation_controller.tick(is_on_floor(), velocity)
@@ -168,6 +184,8 @@ func _on_equipped_weapon_changed(item_id: StringName) -> void:
 		_:
 			return
 	_cancel_bow_attack()
+	if _bow_attack_shape != null:
+		_bow_attack_shape.size = Vector2(86.0, 66.0)
 	_combo_step = 0
 	combo_changed.emit(0)
 	weapon_changed.emit(_weapon_name())
@@ -302,6 +320,55 @@ func _attack_daggers(now: float) -> void:
 	tween.tween_property(visual, "rotation", 0.14 * facing * (1 if _combo_step % 2 == 1 else -1), 0.05)
 	tween.tween_property(visual, "rotation", 0.0, 0.08)
 
+func _tick_bow_hold(now: float) -> void:
+	if not can_control or weapon_mode != WeaponMode.BOW:
+		return
+	if Input.is_action_just_pressed("attack"):
+		_bow_hold_since = now
+		var next_step := BowCombo.next_step(_bow_combo_step, now, _bow_combo_deadline, _bow_target_in_melee_range())
+		_bow_hold_is_melee = next_step == BowCombo.ARROW_STAB or next_step == BowCombo.PUSH_KICK
+		_bow_hold_is_finisher = next_step == BowCombo.FINISHER_SHOT
+		if not _bow_hold_is_melee and now >= _attack_locked_until:
+			animation_controller.set_state(&"bow_draw")
+	if Input.is_action_just_released("attack") and _bow_hold_since >= 0.0:
+		if not _bow_hold_is_melee:
+			_bow_queued_charge = BowCharge.fraction(now - _bow_hold_since)
+			_bow_queued_finisher = _bow_hold_is_finisher
+		_bow_hold_since = -1.0
+		_bow_hold_is_melee = false
+		_bow_hold_is_finisher = false
+	# If the kick is still in recovery, the hold continues without dropping input.
+	if _bow_hold_since >= 0.0 and not _bow_hold_is_melee and now >= _attack_locked_until:
+		if animation_controller.state != &"bow_draw":
+			animation_controller.set_state(&"bow_draw")
+
+
+func _process_queued_bow_shot(now: float) -> void:
+	if not can_control or weapon_mode != WeaponMode.BOW:
+		return
+	if _bow_queued_charge < 0.0 or now < _attack_locked_until:
+		return
+	var charge := _bow_queued_charge
+	var is_finisher := _bow_queued_finisher
+	_bow_queued_charge = -1.0
+	_bow_queued_finisher = false
+	if not _spend_stamina(12.0 + 6.0 * charge):
+		_reset_bow_combo()
+		return
+	if is_finisher:
+		_bow_combo_step = BowCombo.FINISHER_SHOT
+		combo_changed.emit(_bow_combo_step)
+	else:
+		_reset_bow_combo()
+	_queue_bow_shot(now, is_finisher, charge)
+
+
+func get_bow_charge_fraction() -> float:
+	if weapon_mode == WeaponMode.BOW and _bow_hold_since >= 0.0 and not _bow_hold_is_melee:
+		return BowCharge.fraction(Time.get_ticks_msec() / 1000.0 - _bow_hold_since)
+	return 0.0
+
+
 func _attack_bow(now: float) -> void:
 	# At close range: arrow stab -> push kick -> bow shot.
 	# At longer distances the same attack button fires a normal arrow.
@@ -360,18 +427,24 @@ func _bow_target_in_melee_range() -> bool:
 
 
 func _queue_bow_melee(now: float, delay: float, damage: int, knockback: float, reach: float) -> void:
+	# Wider contact areas intentionally allow one kick or stab to hit a crowd.
+	# The geometry is private to the player; enemy hitboxes are not modified.
+	if _bow_attack_shape != null:
+		_bow_attack_shape.size = Vector2(150.0, 88.0) if knockback >= 350.0 else Vector2(110.0, 78.0)
 	hitbox.damage = damage
 	hitbox.knockback = knockback
 	hitbox.position.x = reach * facing
 	_bow_melee_queued_at = now + delay
 
 
-func _queue_bow_shot(now: float, finisher: bool = false) -> void:
+func _queue_bow_shot(now: float, finisher: bool = false, charge: float = 0.0) -> void:
 	animation_controller.set_state(&"bow_shot")
 	_attack_locked_until = now + (0.46 if finisher else 0.48)
-	_bow_projectile_damage = (34 if finisher else 28) if progression.has_skill(&"bow_piercing") else (26 if finisher else 20)
-	_bow_projectile_speed = 780.0 if progression.has_skill(&"bow_piercing") else 650.0
-	_bow_projectile_knockback = (220.0 if finisher else 160.0) if progression.has_skill(&"bow_piercing") else (200.0 if finisher else 130.0)
+	var base_damage := (34 if finisher else 28) if progression.has_skill(&"bow_piercing") else (26 if finisher else 20)
+	_bow_projectile_damage = BowCharge.damage(base_damage, charge)
+	_bow_projectile_speed = BowCharge.speed(780.0 if progression.has_skill(&"bow_piercing") else 650.0, charge)
+	_bow_projectile_knockback = BowCharge.knockback((220.0 if finisher else 160.0) if progression.has_skill(&"bow_piercing") else (200.0 if finisher else 130.0), charge)
+	_bow_projectile_charge = charge
 	_bow_projectile_queued_at = now + 0.17
 
 
@@ -388,9 +461,9 @@ func _process_pending_bow_attack(now: float) -> void:
 			_apply_hit_stop(0.035)
 	if _bow_projectile_queued_at >= 0.0 and now >= _bow_projectile_queued_at:
 		_bow_projectile_queued_at = -1.0
-		_spawn_projectile(arrow_scene, _bow_projectile_damage, _bow_projectile_speed, _bow_projectile_knockback)
+		_spawn_projectile(arrow_scene, _bow_projectile_damage, _bow_projectile_speed, _bow_projectile_knockback, _bow_projectile_charge)
 		_reset_bow_combo()
-	if _bow_combo_step > 0 and now > _bow_combo_deadline and _bow_projectile_queued_at < 0.0:
+	if _bow_combo_step > 0 and now > _bow_combo_deadline and _bow_projectile_queued_at < 0.0 and _bow_queued_charge < 0.0 and _bow_hold_since < 0.0:
 		_reset_bow_combo()
 
 
@@ -402,6 +475,11 @@ func _reset_bow_combo() -> void:
 
 
 func _cancel_bow_attack() -> void:
+	_bow_hold_since = -1.0
+	_bow_hold_is_melee = false
+	_bow_hold_is_finisher = false
+	_bow_queued_charge = -1.0
+	_bow_queued_finisher = false
 	_bow_melee_queued_at = -1.0
 	_bow_projectile_queued_at = -1.0
 	_reset_bow_combo()
@@ -421,11 +499,14 @@ func _attack_staff(now: float) -> void:
 	tween.tween_property(visual, "rotation", -0.14 * facing, 0.15)
 	tween.tween_property(visual, "rotation", 0.0, 0.22)
 
-func _spawn_projectile(scene: PackedScene, damage: int, speed: float, knockback: float) -> void:
+func _spawn_projectile(scene: PackedScene, damage: int, speed: float, knockback: float, charge: float = 0.0) -> void:
 	var projectile := scene.instantiate() as CombatProjectile
 	get_tree().current_scene.add_child(projectile)
 	projectile.global_position = projectile_origin.global_position + Vector2(24.0 * facing, -6.0)
 	projectile.configure(facing, damage, speed, knockback, global_position)
+	if charge > 0.1:
+		projectile.modulate = Color(1.0, 0.48 + 0.52 * (1.0 - charge), 0.58 + 0.42 * (1.0 - charge), 1.0)
+		projectile.scale *= 1.0 + charge * 0.45
 
 func _update_visual(delta: float) -> void:
 	# Switch only the drawing layer; keep movement, attack hitboxes and timing.
@@ -451,7 +532,7 @@ func _update_visual(delta: float) -> void:
 	if is_instance_valid(proxy_visual):
 		proxy_visual.visible = not sword_equipped
 		if not sword_equipped:
-			proxy_visual.configure(animation_controller.state, animation_controller.state_progress(), facing, animation_controller.drawing_index(), weapon_mode == WeaponMode.BOW)
+			proxy_visual.configure(animation_controller.state, animation_controller.state_progress(), facing, animation_controller.drawing_index(), weapon_mode == WeaponMode.BOW, get_bow_charge_fraction())
 	if absf(velocity.x) > 15.0 and is_on_floor():
 		var bob := sin(Time.get_ticks_msec() * 0.018) * 2.0
 		visual.position.y = move_toward(visual.position.y, bob, 40.0 * delta)
