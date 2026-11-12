@@ -5,6 +5,7 @@ on:
     branches:
       - feature/portador-rig2d-prototype
       - feature/bow-hybrid-rig-v041
+      - feature/bow-combat-v042
   pull_request:
     branches:
       - main
@@ -47,3 +48,7 @@ jobs:
       - name: Verify arrow stab kick and ranged shot sequencing
         run: |
           ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/bow_combo_test.gd
+
+      - name: Verify bow charge and crowd contact
+        run: |
+          ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/bow_crowd_charge_test.gd
