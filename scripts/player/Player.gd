@@ -245,9 +245,7 @@ func _tick_weapon_actions(now: float) -> void:
 	if _shield_hits > 0:
 		if now >= _shield_until:
 			_shield_hits = 0
-		queue_redraw()
-		else:
-			queue_redraw() # Visible ring while the barrier is active.
+		queue_redraw() # Expire or animate the ring.
 	if not can_control:
 		_bow_charging_since = -1.0
 		_bow_pending_charge = -1.0
