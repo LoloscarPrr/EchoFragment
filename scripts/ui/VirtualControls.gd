@@ -104,7 +104,7 @@ func _refresh_combat_labels() -> void:
 	if _current_mode == 3 and dagger_count == 0 and secondary_cd > 0.0:
 		_secondary_button.text += "\n%.1fs" % secondary_cd
 	_secondary_button.disabled = (_current_mode == 3 and dagger_count == 0)
-	_guard_button.disabled = remaining > 0.0 and shield_hits == 0
+	_guard_button.disabled = remaining > 0.0 or shield_hits > 0
 
 
 func _input(event: InputEvent) -> void:
