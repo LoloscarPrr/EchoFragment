@@ -41,4 +41,4 @@ jobs:
 
       - name: Verify weapon buttons and shields in live scene
         run: |
-          ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/weapon_actions_scene_test.gd
+          timeout 40s ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/weapon_actions_scene_test.gd
