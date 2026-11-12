@@ -1,6 +1,10 @@
 extends SceneTree
 
 func _initialize() -> void:
+	create_timer(12.0).timeout.connect(func() -> void:
+		push_error("Weapon smoke test did not complete")
+		quit(1)
+	)
 	call_deferred("_run_smoke_test")
 
 func _run_smoke_test() -> void:
@@ -9,7 +13,6 @@ func _run_smoke_test() -> void:
 	var game := packed.instantiate()
 	root.add_child(game)
 	current_scene = game
-	await process_frame
 	var player = game.get_node("Player")
 	var controls = game.get_node("VirtualControls")
 	assert(player != null and controls != null)
