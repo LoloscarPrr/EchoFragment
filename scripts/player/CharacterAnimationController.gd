@@ -65,8 +65,8 @@ func tick(is_grounded: bool, velocity: Vector2) -> void:
 	state_tick += 1
 	_was_grounded = is_grounded
 
-func buffer_action(action: StringName) -> void:
-	_buffered_actions[action] = INPUT_BUFFER_TICKS
+func buffer_action(action: StringName, duration_ticks: int = INPUT_BUFFER_TICKS) -> void:
+	_buffered_actions[action] = maxi(duration_ticks, 1)
 
 func has_buffered(action: StringName) -> bool:
 	return _buffered_actions.has(action)
