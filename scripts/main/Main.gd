@@ -199,6 +199,7 @@ func _on_combo_changed(step: int) -> void:
 
 func _on_weapon_changed(display_name: String) -> void:
 	weapon_label.text = "ARMA: " + display_name
+	virtual_controls.set_weapon_mode(player.weapon_mode)
 
 func _refresh_progression() -> void:
 	var progression: Progression = player.progression

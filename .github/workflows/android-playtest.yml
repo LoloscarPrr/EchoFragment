@@ -3,7 +3,7 @@ name: Android Playtest APK
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, feature/weapon-actions-v1]
     paths:
       - "scripts/**"
       - "scenes/**"
@@ -44,14 +44,14 @@ jobs:
           GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
           mkdir -p build
-          godot --headless --verbose --path . --export-debug "Android Playtest" build/EchoFragment-0.22.apk
-          test -s build/EchoFragment-0.22.apk
-          ls -lh build/EchoFragment-0.22.apk
+          godot --headless --verbose --path . --export-debug "Android Playtest" build/EchoFragment-0.5.0.apk
+          test -s build/EchoFragment-0.5.0.apk
+          ls -lh build/EchoFragment-0.5.0.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: EchoFragment-0.22-APK
-          path: build/EchoFragment-0.22.apk
+          name: EchoFragment-0.5.0-APK
+          path: build/EchoFragment-0.5.0.apk
           if-no-files-found: error
           retention-days: 30

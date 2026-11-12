@@ -2,7 +2,7 @@ extends CanvasLayer
 
 # Direct multi-finger touchscreen controller. Each touch ID is independent.
 # GUI buttons remain as visual targets but do not intercept Android fingers.
-const ACTIONS := ["move_left", "move_right", "jump", "attack", "dodge", "interact", "inventory", "skills"]
+const ACTIONS := ["move_left", "move_right", "jump", "attack", "dodge", "interact", "inventory", "skills", "weapon_secondary", "weapon_guard"]
 var _buttons: Array[Button] = []
 var _touch_owner: Dictionary = {}
 var _action_holders: Dictionary = {}
@@ -10,9 +10,14 @@ var _mouse_actions: Dictionary = {}
 var _joystick: Control
 var _joystick_finger := -1
 var _joystick_axis := 0
+var _secondary_button: Button
+var _guard_button: Button
+var _current_mode := -1
 
 func _ready() -> void:
-	_buttons = [$Root/Left, $Root/Right, $Root/Jump, $Root/Attack, $Root/Dodge, $Root/Interact, $Root/Inventory, $Root/Skills]
+	_secondary_button = _create_combat_button("Secondary", -132.0, -265.0, -32.0, -165.0)
+	_guard_button = _create_combat_button("Guard", -242.0, -265.0, -142.0, -165.0)
+	_buttons = [$Root/Left, $Root/Right, $Root/Jump, $Root/Attack, $Root/Dodge, $Root/Interact, $Root/Inventory, $Root/Skills, _secondary_button, _guard_button]
 	for index in range(_buttons.size()):
 		var button: Button = _buttons[index]
 		var action: String = ACTIONS[index]
@@ -39,6 +44,68 @@ func _ready() -> void:
 		_joystick.offset_top = -226.0
 		_joystick.offset_bottom = -16.0
 		_joystick.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+func _create_combat_button(label: String, left: float, top: float, right: float, bottom: float) -> Button:
+	var button := Button.new()
+	button.name = label
+	button.anchor_left = 1.0
+	button.anchor_right = 1.0
+	button.anchor_top = 1.0
+	button.anchor_bottom = 1.0
+	button.offset_left = left
+	button.offset_top = top
+	button.offset_right = right
+	button.offset_bottom = bottom
+	button.text = label
+	button.focus_mode = Control.FOCUS_NONE
+	$Root.add_child(button)
+	return button
+
+
+func set_weapon_mode(mode: int) -> void:
+	if _current_mode == mode:
+		return
+	_release_all()
+	for action in _mouse_actions.keys():
+		_send_action(str(action), false)
+	_mouse_actions.clear()
+	_current_mode = mode
+	_refresh_combat_labels()
+
+
+func _process(_delta: float) -> void:
+	if not visible:
+		if not _touch_owner.is_empty() or _joystick_axis != 0:
+			_release_all()
+		return
+	_refresh_combat_labels()
+
+
+func _refresh_combat_labels() -> void:
+	var player = get_parent().get_node_or_null("Player")
+	if player == null or not player.has_method("get_weapon_action_status"):
+		return
+	var status: Dictionary = player.get_weapon_action_status()
+	if status.is_empty():
+		return
+	$Root/Attack.text = str(status.get("primary", "GOLPE"))
+	_secondary_button.visible = bool(status.get("secondary_visible", false))
+	_guard_button.visible = bool(status.get("guard_visible", false))
+	_secondary_button.text = str(status.get("secondary", ""))
+	_guard_button.text = str(status.get("guard", ""))
+	var remaining: float = float(status.get("guard_cd", 0.0))
+	var shield_hits: int = int(status.get("shield_hits", 0))
+	if remaining > 0.0 and shield_hits <= 0 and _guard_button.visible:
+		_guard_button.text += "\n%.1fs" % remaining
+	if shield_hits > 0 and _guard_button.visible:
+		_guard_button.text += "\n%d golpes" % shield_hits
+	var dagger_count := int(status.get("ready", 1))
+	var secondary_cd: float = float(status.get("secondary_cd", 0.0))
+	if _current_mode == 3 and dagger_count == 0 and secondary_cd > 0.0:
+		_secondary_button.text += "\n%.1fs" % secondary_cd
+	_secondary_button.disabled = (_current_mode == 3 and dagger_count == 0)
+	_guard_button.disabled = remaining > 0.0 or shield_hits > 0
+
 
 func _input(event: InputEvent) -> void:
 	if not OS.has_feature("mobile"):
@@ -105,7 +172,7 @@ func get_touch_axis() -> float:
 func _find_action(screen_position: Vector2) -> String:
 	for index in range(_buttons.size()):
 		var button: Button = _buttons[index]
-		if button.is_visible_in_tree() and button.get_global_rect().has_point(screen_position):
+		if button.is_visible_in_tree() and not button.disabled and button.get_global_rect().has_point(screen_position):
 			return ACTIONS[index]
 	return ""
 

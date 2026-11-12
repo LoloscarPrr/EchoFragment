@@ -48,6 +48,14 @@ dodge={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":75)]
 }
+weapon_secondary={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":76)]
+}
+weapon_guard={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":85)]
+}
 interact={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":69)]
