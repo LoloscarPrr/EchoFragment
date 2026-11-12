@@ -3,7 +3,13 @@ name: Android EchoFragment v0.4.2 - Crowd and Charge
 on:
   push:
     branches: [feature/bow-combat-v042]
-    paths: ['.github/workflows/android-bow-hybrid-v042.yml']
+    paths:
+      - "scripts/**"
+      - "scenes/**"
+      - "tests/**"
+      - "project.godot"
+      - "export_presets.cfg"
+      - ".github/workflows/android-bow-hybrid-v042.yml"
   workflow_dispatch:
 
 permissions:
