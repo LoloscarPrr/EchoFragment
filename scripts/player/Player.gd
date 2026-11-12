@@ -151,7 +151,8 @@ func _physics_process(delta: float) -> void:
 	_tick_bow_hold(now)
 	if can_control and Input.is_action_just_pressed("attack"):
 		if weapon_mode != WeaponMode.BOW or _bow_hold_is_melee:
-			animation_controller.buffer_action(&"attack")
+			# Keep a fast follow-up during the preceding bow hit's recovery.
+			animation_controller.buffer_action(&"attack", 32 if weapon_mode == WeaponMode.BOW else 6)
 
 	if can_control and animation_controller.has_buffered(&"attack") and now >= _attack_locked_until:
 		animation_controller.consume_buffered(&"attack")
