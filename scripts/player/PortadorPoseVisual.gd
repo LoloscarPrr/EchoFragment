@@ -64,6 +64,12 @@ func _apply_pose() -> void:
 				frame_index = 9
 			else:
 				frame_index = 10
+		# Temporary readable poses until the bow, daggers and staff get
+		# their own frames in the canonical approved armor style.
+		&"bow_draw": frame_index = 8
+		&"bow_stab": frame_index = 9
+		&"bow_kick": frame_index = 10
+		&"bow_shot": frame_index = 9 if state_progress < 0.55 else 10
 		&"dodge": frame_index = 11
 	var frame: Dictionary = _frames[frame_index]
 	var region: Array = frame["region"]
