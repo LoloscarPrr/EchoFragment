@@ -276,8 +276,6 @@ func _tick_weapon_actions(now: float) -> void:
 		if now >= _shield_until:
 			_shield_hits = 0
 		queue_redraw()
-		else:
-			queue_redraw()
 	if not can_control:
 		return
 	if Input.is_action_just_pressed("weapon_guard"):
