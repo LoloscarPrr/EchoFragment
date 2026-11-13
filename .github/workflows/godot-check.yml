@@ -2,9 +2,9 @@ name: Godot Check
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/visual-safe-weapon-combat-v050]
   pull_request:
-    branches: [main]
+    branches: [main, feature/bow-combat-v042]
 
 jobs:
   validate:
@@ -26,3 +26,39 @@ jobs:
       - name: Test Tajo del Eco Phase 1.1 timing
         run: |
           ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/tajo_del_eco_timeline_test.gd
+
+      - name: Check bow_combo_test.gd
+        run: |
+          timeout 50s ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/bow_combo_test.gd
+
+      - name: Check bow_crowd_charge_test.gd
+        run: |
+          timeout 50s ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/bow_crowd_charge_test.gd
+
+      - name: Check weapon_skill_tree_test.gd
+        run: |
+          timeout 50s ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/weapon_skill_tree_test.gd
+
+      - name: Check weapon_actions_test.gd
+        run: |
+          timeout 50s ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/weapon_actions_test.gd
+
+      - name: Check portador_pose_visual_test.gd
+        run: |
+          timeout 50s ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/portador_pose_visual_test.gd
+
+      - name: Check mockup_integration_test.gd
+        run: |
+          timeout 50s ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/mockup_integration_test.gd
+
+      - name: Check rig_player_bridge_test.gd
+        run: |
+          timeout 50s ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/rig_player_bridge_test.gd
+
+      - name: Check visual_combat_regression_test.gd
+        run: |
+          timeout 50s ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/visual_combat_regression_test.gd
+
+      - name: Check weapon_actions_scene_test.gd
+        run: |
+          timeout 50s ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/weapon_actions_scene_test.gd
