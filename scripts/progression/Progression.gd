@@ -29,7 +29,11 @@ func add_experience(amount: int) -> void:
 	skill_points_changed.emit(skill_points)
 
 func can_unlock(skill_id: StringName) -> bool:
-	return skill_points > 0 and not unlocked_skills.has(skill_id)
+	if skill_points <= 0 or unlocked_skills.has(skill_id):
+		return false
+	if not SkillCatalog.DATA.has(skill_id):
+		return false
+	return SkillCatalog.missing_requirements(skill_id, unlocked_skills).is_empty()
 
 func unlock(skill_id: StringName) -> bool:
 	if not can_unlock(skill_id):

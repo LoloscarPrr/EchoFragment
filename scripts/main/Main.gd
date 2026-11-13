@@ -159,7 +159,7 @@ func _open_skills() -> void:
 	player.can_control = false
 	player.velocity = Vector2.ZERO
 	virtual_controls.visible = false
-	skills_panel.open_skills(player.progression)
+	skills_panel.open_skills(player.progression, player.inventory)
 	status_label.text = "Habilidades"
 
 func _on_inventory_equip_requested(item_id: StringName) -> void:
@@ -175,7 +175,7 @@ func _on_inventory_closed() -> void:
 
 func _on_skill_unlock_requested(skill_id: StringName) -> void:
 	if player.unlock_skill(skill_id):
-		skills_panel.open_skills(player.progression)
+		skills_panel.open_skills(player.progression, player.inventory)
 		status_label.text = "Habilidad aprendida"
 		_refresh_progression()
 
@@ -209,6 +209,7 @@ func _on_combo_changed(step: int) -> void:
 
 func _on_weapon_changed(display_name: String) -> void:
 	weapon_label.text = "ARMA: " + display_name
+	virtual_controls.set_weapon_mode(player.weapon_mode)
 
 func _refresh_progression() -> void:
 	var progression: Progression = player.progression

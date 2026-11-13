@@ -9,11 +9,15 @@ extends Area2D
 var direction := 1.0
 var source_position := Vector2.ZERO
 var _time_left := 0.0
+var max_targets := 1
+var _targets_hit: Dictionary = {}
 
 func _ready() -> void:
 	_time_left = lifetime
 
-func configure(dir: float, dmg: int, projectile_speed: float, kb: float, source: Vector2) -> void:
+func configure(dir: float, dmg: int, projectile_speed: float, kb: float, source: Vector2, pierce_count: int = 1) -> void:
+	max_targets = maxi(1, pierce_count)
+	_targets_hit.clear()
 	direction = sign(dir)
 	if direction == 0.0:
 		direction = 1.0
@@ -32,6 +36,11 @@ func _physics_process(delta: float) -> void:
 	for area in get_overlapping_areas():
 		if not area.has_method("receive_hit"):
 			continue
+		var id := area.get_instance_id()
+		if _targets_hit.has(id):
+			continue
+		_targets_hit[id] = true
 		area.receive_hit(damage, source_position, knockback)
-		queue_free()
-		return
+		if _targets_hit.size() >= max_targets:
+			queue_free()
+			return

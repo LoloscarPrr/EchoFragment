@@ -2,7 +2,7 @@ extends CanvasLayer
 
 # Direct multi-finger touchscreen controller. Each touch ID is independent.
 # GUI buttons remain as visual targets but do not intercept Android fingers.
-const ACTIONS := ["move_left", "move_right", "jump", "attack", "dodge", "interact", "inventory", "skills"]
+const ACTIONS := ["move_left", "move_right", "jump", "attack", "dodge", "interact", "inventory", "skills", "weapon_secondary", "weapon_guard"]
 @export var touch_controls_preview := false
 
 var _buttons: Array[Button] = []
@@ -12,9 +12,14 @@ var _mouse_actions: Dictionary = {}
 var _joystick: Control
 var _joystick_finger := -1
 var _joystick_axis := 0
+var _secondary_button: Button
+var _guard_button: Button
+var _current_mode := -1
 
 func _ready() -> void:
-	_buttons = [$Root/Left, $Root/Right, $Root/Jump, $Root/Attack, $Root/Dodge, $Root/Interact, $Root/Inventory, $Root/Skills]
+	_secondary_button = _new_combat_button("Secondary")
+	_guard_button = _new_combat_button("Guard")
+	_buttons = [$Root/Left, $Root/Right, $Root/Jump, $Root/Attack, $Root/Dodge, $Root/Interact, $Root/Inventory, $Root/Skills, _secondary_button, _guard_button]
 	for index in range(_buttons.size()):
 		var button: Button = _buttons[index]
 		var action: String = ACTIONS[index]
@@ -43,19 +48,62 @@ func _ready() -> void:
 		_joystick.offset_bottom = -16.0
 		_joystick.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
+func _new_combat_button(label: String) -> Button:
+	var button := Button.new()
+	button.name = label
+	button.anchor_left = 1.0
+	button.anchor_right = 1.0
+	button.anchor_top = 1.0
+	button.anchor_bottom = 1.0
+	button.focus_mode = Control.FOCUS_NONE
+	button.text = label
+	$Root.add_child(button)
+	return button
+
+
+func set_weapon_mode(mode: int) -> void:
+	if _current_mode == mode:
+		return
+	_release_all()
+	for action in _mouse_actions.keys():
+		_send_action(str(action), false)
+	_mouse_actions.clear()
+	_current_mode = mode
+	_refresh_weapon_labels()
+
+
 func _process(_delta: float) -> void:
-	# Simple on-button charge meter. Every finger keeps its independent action.
 	if not visible:
+		if not _touch_owner.is_empty() or _joystick_axis != 0:
+			_release_all()
 		return
-	var fighter := get_parent().get_node_or_null("Player")
-	if fighter == null or not fighter.has_method("get_bow_charge_fraction"):
+	_refresh_weapon_labels()
+
+
+func _refresh_weapon_labels() -> void:
+	var fighter = get_parent().get_node_or_null("Player")
+	if fighter == null or not fighter.has_method("get_weapon_action_status"):
 		return
-	var attack_button := $Root/Attack as Button
-	if fighter.weapon_mode == 1:
-		var charge: float = fighter.get_bow_charge_fraction()
-		attack_button.text = "CARGA %d%%" % roundi(charge * 100.0) if charge > 0.03 else "FLECHA"
-	else:
-		attack_button.text = "ATACAR"
+	var status: Dictionary = fighter.get_weapon_action_status()
+	if status.is_empty():
+		return
+	$Root/Attack.text = str(status.get("primary", "GOLPE"))
+	_secondary_button.visible = bool(status.get("secondary_visible", false))
+	_guard_button.visible = bool(status.get("guard_visible", false))
+	_secondary_button.text = str(status.get("secondary", ""))
+	_guard_button.text = str(status.get("guard", ""))
+	var remaining: float = float(status.get("guard_cd", 0.0))
+	var shield_hits: int = int(status.get("shield_hits", 0))
+	if remaining > 0.0 and shield_hits <= 0 and _guard_button.visible:
+		_guard_button.text += "\n%.1fs" % remaining
+	if shield_hits > 0 and _guard_button.visible:
+		_guard_button.text += "\n%d impactos" % shield_hits
+	var dagger_count := int(status.get("ready", 1))
+	var secondary_cd: float = float(status.get("secondary_cd", 0.0))
+	if _current_mode == 3 and dagger_count == 0 and secondary_cd > 0.0:
+		_secondary_button.text += "\n%.1fs" % secondary_cd
+	_secondary_button.disabled = (_current_mode == 3 and dagger_count == 0)
+	_guard_button.disabled = remaining > 0.0 or shield_hits > 0
 
 
 func _input(event: InputEvent) -> void:
@@ -123,7 +171,7 @@ func get_touch_axis() -> float:
 func _find_action(screen_position: Vector2) -> String:
 	for index in range(_buttons.size()):
 		var button: Button = _buttons[index]
-		if button.is_visible_in_tree() and button.get_global_rect().has_point(screen_position):
+		if button.is_visible_in_tree() and not button.disabled and button.get_global_rect().has_point(screen_position):
 			return ACTIONS[index]
 	return ""
 
@@ -197,11 +245,15 @@ func _skin_action_button(button: Button) -> void:
 	button.add_theme_font_size_override("font_size", 16)
 	# Small menu controls sit above the action cluster, not across the world.
 	var layout := {
-		"Attack": Rect2(-156, -152, 120, 120),
-		"Jump": Rect2(-112, -266, 86, 86),
-		"Dodge": Rect2(-254, -210, 86, 86),
-		"Skills": Rect2(-215, -314, 76, 76),
-		"Inventory": Rect2(-352, -116, 76, 76),
+		# Keep the visual language of the approved mockup: circular right-hand actions.
+		# Position touch targets without overlapping while showing three weapon actions.
+		"Attack": Rect2(-142, -148, 112, 112),
+		"Secondary": Rect2(-259, -273, 90, 90),
+		"Guard": Rect2(-375, -248, 90, 90),
+		"Jump": Rect2(-120, -288, 88, 88),
+		"Dodge": Rect2(-265, -150, 88, 88),
+		"Skills": Rect2(-185, -380, 80, 56),
+		"Inventory": Rect2(-285, -385, 80, 56),
 	}
 	if layout.has(button.name):
 		var box: Rect2 = layout[button.name]

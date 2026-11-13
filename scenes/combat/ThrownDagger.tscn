@@ -1,0 +1,27 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/Projectile.gd" id="1"]
+
+[sub_resource type="RectangleShape2D" id="1"]
+size = Vector2(30, 8)
+
+[node name="ThrownDagger" type="Area2D"]
+collision_layer = 0
+collision_mask = 32
+monitoring = true
+monitorable = false
+script = ExtResource("1")
+speed = 760.0
+damage = 22
+knockback = 160.0
+
+[node name="Blade" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-16, -3, 7, -3, 17, 0, 7, 3, -16, 3)
+color = Color(0.78, 0.82, 0.93, 1)
+
+[node name="Handle" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-16, -6, -10, -6, -10, 6, -16, 6)
+color = Color(0.24, 0.2, 0.31, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("1")
