@@ -269,6 +269,83 @@ func _try_dodge(direction: float, now: float) -> void:
 	tween.tween_property(visual, "scale", Vector2(1.28, 0.72), 0.07)
 	tween.tween_property(visual, "scale", _visual_base_scale, 0.11)
 
+# Actions sent by the dynamic mobile HUD. Holding is independently captured
+# per finger; joystick, jump and dodge are unaffected.
+func _tick_weapon_actions(now: float) -> void:
+	if _shield_hits > 0:
+		if now >= _shield_until:
+			_shield_hits = 0
+		queue_redraw()
+		else:
+			queue_redraw()
+	if not can_control:
+		return
+	if Input.is_action_just_pressed("weapon_guard"):
+		_try_guard(now)
+	if weapon_mode != WeaponMode.BOW and Input.is_action_just_pressed("weapon_secondary"):
+		_try_secondary_action(now)
+
+
+func _try_secondary_action(now: float) -> void:
+	if now < _attack_locked_until:
+		return
+	match weapon_mode:
+		WeaponMode.SWORD:
+			if not _spend_stamina(18.0):
+				return
+			_spawn_projectile(fire_scene, 32 + (5 if progression.has_skill(&"sword_edge") else 0), 610.0, 250.0)
+			_attack_locked_until = now + 0.42
+		WeaponMode.DAGGERS:
+			var slot := WeaponActionRules.ready_dagger_slot(_dagger_ready_at, now)
+			if slot < 0 or not _spend_stamina(8.0):
+				return
+			var recharge := 3.05 if progression.has_skill(&"daggers_flurry") else WeaponActionRules.DAGGER_RECHARGE
+			_dagger_ready_at[slot] = now + recharge
+			var blade_damage := 22 + (5 if progression.has_skill(&"daggers_precision") else 0)
+			_spawn_projectile(thrown_dagger_scene, blade_damage, 760.0, 180.0)
+			_attack_locked_until = now + 0.21
+
+
+func _try_guard(now: float) -> void:
+	if now < _shield_cooldown_until or _shield_hits > 0:
+		return
+	match weapon_mode:
+		WeaponMode.SWORD:
+			if not _spend_stamina(16.0):
+				return
+			_shield_hits = 1
+			_shield_until = now + WeaponActionRules.SWORD_BLOCK_DURATION
+			_shield_cooldown_until = now + 5.5
+		WeaponMode.STAFF:
+			var cost := 19.0 if progression.has_skill(&"staff_focus") else 25.0
+			if not _spend_stamina(cost):
+				return
+			_shield_hits = 3
+			_shield_until = now + WeaponActionRules.STAFF_BARRIER_DURATION
+			_shield_cooldown_until = now + (7.0 if progression.has_skill(&"staff_channel") else 9.0)
+		_:
+			return
+	queue_redraw()
+
+
+func get_weapon_action_status() -> Dictionary:
+	var now: float = Time.get_ticks_msec() / 1000.0
+	var guard_cd := WeaponActionRules.cooldown_remaining(_shield_cooldown_until, now)
+	match weapon_mode:
+		WeaponMode.SWORD:
+			return {"primary": "ESPADA", "secondary": "FUEGO", "guard": "BLOQUEO", "secondary_visible": true, "guard_visible": true, "guard_cd": guard_cd, "shield_hits": _shield_hits}
+		WeaponMode.BOW:
+			var charge := get_bow_charge_fraction()
+			return {"primary": "FLECHA", "secondary": ("CARGA %d%%" % roundi(charge * 100.0)) if _bow_hold_since >= 0.0 else "DISPARO", "guard": "", "secondary_visible": true, "guard_visible": false, "charge": charge}
+		WeaponMode.DAGGERS:
+			var ready := WeaponActionRules.daggers_available(_dagger_ready_at, now)
+			var next_ready := minf(_dagger_ready_at[0], _dagger_ready_at[1])
+			return {"primary": "DAGAS", "secondary": "LANZAR %d/2" % ready, "guard": "", "secondary_visible": true, "guard_visible": false, "ready": ready, "secondary_cd": WeaponActionRules.cooldown_remaining(next_ready, now)}
+		WeaponMode.STAFF:
+			return {"primary": "HECHIZO", "secondary": "", "guard": "ESCUDO", "secondary_visible": false, "guard_visible": true, "guard_cd": guard_cd, "shield_hits": _shield_hits}
+	return {}
+
+
 func _try_attack(now: float) -> void:
 	if now < _attack_locked_until:
 		return
@@ -564,11 +641,29 @@ func _update_visual(delta: float) -> void:
 		target_scale = Vector2(1.04, 0.96)
 	visual.scale = visual.scale.lerp(target_scale, minf(1.0, 9.0 * delta))
 
+func _draw() -> void:
+	if _shield_hits <= 0 or Time.get_ticks_msec() / 1000.0 >= _shield_until:
+		return
+	var arcane := weapon_mode == WeaponMode.STAFF
+	var interior := Color(0.46, 0.67, 1.0, 0.20) if arcane else Color(1.0, 0.29, 0.27, 0.19)
+	var outline := Color(0.55, 0.77, 1.0, 0.92) if arcane else Color(1.0, 0.33, 0.31, 0.94)
+	draw_circle(Vector2(0, -24), 52.0, interior)
+	draw_arc(Vector2(0, -24), 52.0, 0.0, TAU, 48, outline, 4.0, true)
+
+
 func can_receive_damage() -> bool:
 	return health > 0 and Time.get_ticks_msec() / 1000.0 >= _invulnerable_until
 
 func take_damage(amount: int, source_position := Vector2.ZERO, knockback := 220.0) -> void:
 	if not can_receive_damage():
+		return
+	var now: float = Time.get_ticks_msec() / 1000.0
+	if _shield_hits > 0 and now < _shield_until:
+		_shield_hits -= 1
+		_invulnerable_until = now + 0.20
+		queue_redraw()
+		if is_instance_valid(combat_effects):
+			combat_effects.play_impact(Vector2(0, -22))
 		return
 	_cancel_bow_attack()
 	health = maxi(0, health - amount)
