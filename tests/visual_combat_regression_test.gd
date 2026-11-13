@@ -25,6 +25,7 @@ func _run() -> void:
 	var player = game.get_node("Player")
 	var hud = game.get_node("UI/HUD")
 	var controls = game.get_node("VirtualControls")
+	player._update_visual(1.0 / 60.0)
 
 	_check(art.get_script().resource_path == "res://scripts/world/RuinasDelEcoBackdrop.gd", "Ruinas del Eco environment is retained")
 	_check(art.PLATE.get_width() > 1000, "gothic background texture is present")
