@@ -606,7 +606,7 @@ func _spawn_projectile(scene: PackedScene, damage: int, speed: float, knockback:
 func _update_visual(delta: float) -> void:
 	# Switch only the drawing layer; keep movement, attack hitboxes and timing.
 	var sword_equipped := weapon_mode == WeaponMode.SWORD
-	var rig_ready := enable_articulated_visual and sword_equipped and is_instance_valid(articulated_visual) and articulated_visual.art_loaded
+	var rig_ready := enable_articulated_visual and is_instance_valid(articulated_visual) and articulated_visual.art_loaded
 	var show_canonical := sword_equipped and not rig_ready and is_instance_valid(canonical_visual)
 	if is_instance_valid(articulated_visual):
 		articulated_visual.visible = rig_ready
@@ -625,8 +625,8 @@ func _update_visual(delta: float) -> void:
 		if show_canonical:
 			canonical_visual.configure(animation_controller.state, animation_controller.state_progress(), facing, animation_controller.attack_reference_frame_index())
 	if is_instance_valid(proxy_visual):
-		proxy_visual.visible = not sword_equipped
-		if not sword_equipped:
+		proxy_visual.visible = not sword_equipped and not rig_ready
+		if not sword_equipped and not rig_ready:
 			proxy_visual.configure(animation_controller.state, animation_controller.state_progress(), facing, animation_controller.drawing_index(), weapon_mode == WeaponMode.BOW, get_bow_charge_fraction())
 	if absf(velocity.x) > 15.0 and is_on_floor():
 		var bob := sin(Time.get_ticks_msec() * 0.018) * 2.0
