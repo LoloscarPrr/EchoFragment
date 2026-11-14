@@ -16,9 +16,14 @@ func _draw() -> void:
 	# Main's floor collider is centered on y=680 with a height of 80.
 	# Align the painted bridge to its TOP (640), not its center.
 	var top := GROUND_Y - PLATE_HEIGHT * WALK_SURFACE
+	# All draw rectangles must have positive dimensions. Godot may skip
+	# negative-width rectangles, producing an empty middle section.
+	# Mirroring is done with the CanvasItem transform instead.
 	for tile in range(3):
 		var left := float(tile) * TILE_WIDTH
 		if tile % 2 == 1:
-			draw_texture_rect(PLATE, Rect2(left + TILE_WIDTH, top, -TILE_WIDTH, PLATE_HEIGHT), false)
+			draw_set_transform(Vector2(left + TILE_WIDTH, 0.0), 0.0, Vector2(-1.0, 1.0))
 		else:
-			draw_texture_rect(PLATE, Rect2(left, top, TILE_WIDTH, PLATE_HEIGHT), false)
+			draw_set_transform(Vector2(left, 0.0), 0.0, Vector2.ONE)
+		draw_texture_rect(PLATE, Rect2(0.0, top, TILE_WIDTH, PLATE_HEIGHT), false)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

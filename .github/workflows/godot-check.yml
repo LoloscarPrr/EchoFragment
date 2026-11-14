@@ -2,7 +2,7 @@ name: Godot Check
 
 on:
   push:
-    branches: [main, feature/visual-safe-weapon-combat-v050]
+    branches: [main, feature/visual-safe-weapon-combat-v050, fix/ruinas-del-eco-tiling-v052]
   pull_request:
     branches: [main, feature/bow-combat-v042]
 
@@ -62,3 +62,7 @@ jobs:
       - name: Check weapon_actions_scene_test.gd
         run: |
           timeout 50s ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/weapon_actions_scene_test.gd
+
+      - name: Verify complete Ruinas del Eco tiling
+        run: |
+          timeout 50s ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/ruinas_tiling_regression_test.gd
