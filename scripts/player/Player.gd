@@ -291,6 +291,7 @@ func _try_secondary_action(now: float) -> void:
 		WeaponMode.SWORD:
 			if not _spend_stamina(18.0):
 				return
+			animation_controller.play_weapon_action(&"fire_cast")
 			_spawn_projectile(fire_scene, 32 + (5 if progression.has_skill(&"sword_edge") else 0), 610.0, 250.0)
 			_attack_locked_until = now + 0.42
 		WeaponMode.DAGGERS:
@@ -300,6 +301,7 @@ func _try_secondary_action(now: float) -> void:
 			var recharge := 3.05 if progression.has_skill(&"daggers_flurry") else WeaponActionRules.DAGGER_RECHARGE
 			_dagger_ready_at[slot] = now + recharge
 			var blade_damage := 22 + (5 if progression.has_skill(&"daggers_precision") else 0)
+			animation_controller.play_weapon_action(&"daggers_strike")
 			_spawn_projectile(thrown_dagger_scene, blade_damage, 760.0, 180.0)
 			_attack_locked_until = now + 0.21
 
@@ -323,6 +325,7 @@ func _try_guard(now: float) -> void:
 			_shield_cooldown_until = now + (7.0 if progression.has_skill(&"staff_channel") else 9.0)
 		_:
 			return
+	animation_controller.play_weapon_action(&"guard_raise")
 	queue_redraw()
 
 
@@ -392,6 +395,7 @@ func _attack_daggers(now: float) -> void:
 	var dagger_cost := 5.0 if progression.has_skill(&"daggers_flurry") else 8.0
 	if not _spend_stamina(dagger_cost):
 		return
+	animation_controller.play_weapon_action(&"daggers_strike")
 	if now - _last_attack_time <= 0.38:
 		_combo_step = (_combo_step % 4) + 1
 	else:
@@ -575,6 +579,7 @@ func _attack_staff(now: float) -> void:
 	var cost := 14.0 if progression.has_skill(&"staff_focus") else 20.0
 	if not _spend_stamina(cost):
 		return
+	animation_controller.play_weapon_action(&"staff_cast")
 	_combo_step = 0
 	combo_changed.emit(0)
 	_last_attack_time = now
@@ -618,6 +623,8 @@ func _update_visual(delta: float) -> void:
 				var duration := dodge_duration + (0.05 if progression.has_skill(&"cunning_step") else 0.0)
 				animation_progress = clampf(1.0 - (_dodge_until - now) / maxf(0.01, duration), 0.0, 1.0)
 			articulated_visual.configure(animation_state, animation_progress, facing)
+			if articulated_visual.has_method("set_equipped_weapon"):
+				articulated_visual.call("set_equipped_weapon", weapon_mode, get_bow_charge_fraction())
 	if is_instance_valid(canonical_visual):
 		canonical_visual.visible = show_canonical
 		if show_canonical:
