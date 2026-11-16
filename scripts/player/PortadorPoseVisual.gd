@@ -10,6 +10,10 @@ var _pose_sprite: Sprite2D
 var _frames: Array = []
 var _pose_clock := 0.0
 var frame_index := 0
+var equipped_mode := 0
+var charged_fraction := 0.0
+var _weapon_art: WeaponArtOverlay
+var _blade_material: ShaderMaterial
 
 func _ready() -> void:
 	demo_cycle = false
@@ -30,6 +34,12 @@ func _ready() -> void:
 	_pose_sprite.region_enabled = true
 	_pose_sprite.region_filter_clip_enabled = true
 	add_child(_pose_sprite)
+	_blade_material = ShaderMaterial.new()
+	_blade_material.shader = preload("res://scripts/player/PortadorBladeCleanup.gdshader")
+	_pose_sprite.material = _blade_material
+	_weapon_art = WeaponArtOverlay.new()
+	_weapon_art.name = "EquippedWeaponArt"
+	add_child(_weapon_art)
 	art_loaded = true
 	_apply_pose()
 
@@ -39,6 +49,12 @@ func configure(new_state: StringName, progress: float, direction: float = 1.0) -
 	state = new_state
 	state_progress = clampf(progress, 0.0, 1.0)
 	facing = -1.0 if direction < 0.0 else 1.0
+	_apply_pose()
+
+# Called whenever the player's inventory changes. No gameplay node is replaced.
+func set_equipped_weapon(mode: int, charge: float = 0.0) -> void:
+	equipped_mode = clampi(mode, 0, 3)
+	charged_fraction = clampf(charge, 0.0, 1.0)
 	_apply_pose()
 
 func _process(delta: float) -> void:
@@ -70,6 +86,10 @@ func _apply_pose() -> void:
 		&"bow_stab": frame_index = 9
 		&"bow_kick": frame_index = 10
 		&"bow_shot": frame_index = 9 if state_progress < 0.55 else 10
+		&"staff_cast": frame_index = 8 if state_progress < 0.3 else (9 if state_progress < 0.7 else 10)
+		&"daggers_strike": frame_index = 8 if state_progress < 0.28 else (9 if state_progress < 0.75 else 10)
+		&"fire_cast": frame_index = 9
+		&"guard_raise": frame_index = 8
 		&"dodge": frame_index = 11
 	var frame: Dictionary = _frames[frame_index]
 	var region: Array = frame["region"]
@@ -78,3 +98,9 @@ func _apply_pose() -> void:
 	var draw_scale: float = float(frame["scale"])
 	_pose_sprite.scale = Vector2(facing * draw_scale, draw_scale)
 	_pose_sprite.position = Vector2(-float(pivot[0]) * draw_scale * facing, -float(pivot[1]) * draw_scale)
+	if _blade_material != null:
+		_blade_material.set_shader_parameter("remove_forward_blade", equipped_mode != 0)
+		_blade_material.set_shader_parameter("atlas_origin", Vector2(float(region[0]), float(region[1])))
+		_blade_material.set_shader_parameter("frame_pivot", Vector2(float(pivot[0]), float(pivot[1])))
+	if is_instance_valid(_weapon_art):
+		_weapon_art.configure(equipped_mode, state, facing, charged_fraction)
