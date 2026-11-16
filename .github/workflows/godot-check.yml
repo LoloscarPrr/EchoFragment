@@ -2,7 +2,7 @@ name: Godot Check
 
 on:
   push:
-    branches: [main, feature/visual-safe-weapon-combat-v050, fix/ruinas-del-eco-tiling-v052]
+    branches: [main, feature/visual-safe-weapon-combat-v050, fix/ruinas-del-eco-tiling-v052, feature/portador-weapon-visual-v053]
   pull_request:
     branches: [main, feature/bow-combat-v042]
 
@@ -66,3 +66,7 @@ jobs:
       - name: Verify complete Ruinas del Eco tiling
         run: |
           timeout 50s ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/ruinas_tiling_regression_test.gd
+
+      - name: Check integrated Portador weapon artwork and icon UI
+        run: |
+          timeout 50s ./Godot_v4.3-stable_linux.x86_64 --headless --path . --script res://tests/weapon_visual_integration_test.gd
