@@ -8,6 +8,10 @@ func check(ok: bool, msg: String) -> void:
 		push_error("[WeaponVisual] " + msg)
 
 func _initialize() -> void:
+	create_timer(12.0).timeout.connect(func() -> void:
+		push_error("Weapon visual smoke test timed out")
+		quit(1)
+	)
 	call_deferred("_run")
 
 func _run() -> void:
@@ -57,11 +61,11 @@ func _run() -> void:
 	player.equip_weapon(&"apprentice_staff")
 	player.animation_controller.play_weapon_action(&"staff_cast")
 	player._update_visual(1.0 / 60.0)
-	check(pose.animation_state == &"staff_cast", "staff visual action shown")
+	check(pose.state == &"staff_cast", "staff visual action shown")
 	player.equip_weapon(&"shadow_daggers")
 	player.animation_controller.play_weapon_action(&"daggers_strike")
 	player._update_visual(1.0 / 60.0)
-	check(pose.animation_state == &"daggers_strike", "dagger attack visual action shown")
+	check(pose.state == &"daggers_strike", "dagger attack visual action shown")
 
 	game.queue_free()
 	await process_frame
