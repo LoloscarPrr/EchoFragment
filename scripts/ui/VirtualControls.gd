@@ -15,6 +15,8 @@ var _joystick_axis := 0
 var _secondary_button: Button
 var _guard_button: Button
 var _current_mode := -1
+var _glyphs: Dictionary = {}
+var _captions: Dictionary = {}
 
 func _ready() -> void:
 	_secondary_button = _new_combat_button("Secondary")
@@ -32,6 +34,13 @@ func _ready() -> void:
 		else:
 			button.button_down.connect(_on_mouse_button.bind(action, true))
 			button.button_up.connect(_on_mouse_button.bind(action, false))
+
+	# Drawn iconography and discreet action captions; every Button still owns its touch area.
+	_attach_glyph($Root/Attack, "sword", "ESPADA")
+	_attach_glyph(_secondary_button, "fire", "FUEGO")
+	_attach_glyph(_guard_button, "shield", "ESCUDO")
+	_attach_glyph($Root/Jump, "jump", "SALTO")
+	_attach_glyph($Root/Dodge, "dodge", "ESQ.")
 
 	# The joystick occupies the old left/right area, with generous thumb travel.
 	if (OS.has_feature("mobile") or touch_controls_preview):
@@ -61,6 +70,46 @@ func _new_combat_button(label: String) -> Button:
 	return button
 
 
+func _attach_glyph(button: Button, initial_symbol: String, caption_text: String) -> void:
+	button.text = ""
+	var glyph := ActionGlyph.new()
+	glyph.name = "Glyph"
+	glyph.anchor_left = 0.0
+	glyph.anchor_right = 1.0
+	glyph.anchor_top = 0.0
+	glyph.anchor_bottom = 1.0
+	glyph.offset_left = 9.0
+	glyph.offset_right = -9.0
+	glyph.offset_top = 6.0
+	glyph.offset_bottom = -14.0
+	button.add_child(glyph)
+	glyph.set_visual(initial_symbol)
+	_glyphs[button.name] = glyph
+	var caption := Label.new()
+	caption.name = "Caption"
+	caption.text = caption_text
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	caption.anchor_left = 0.0
+	caption.anchor_right = 1.0
+	caption.anchor_top = 1.0
+	caption.anchor_bottom = 1.0
+	caption.offset_top = -24.0
+	caption.offset_bottom = -3.0
+	caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	caption.add_theme_font_size_override("font_size", 12)
+	caption.add_theme_color_override("font_color", Color("#eacfc6"))
+	button.add_child(caption)
+	_captions[button.name] = caption
+
+
+func _display_action(button_name: String, icon_name: String, caption_text: String, progress: float = 0.0, muted: bool = false) -> void:
+	if _glyphs.has(button_name):
+		(_glyphs[button_name] as ActionGlyph).set_visual(icon_name, progress, muted)
+	if _captions.has(button_name):
+		(_captions[button_name] as Label).text = caption_text
+
+
 func set_weapon_mode(mode: int) -> void:
 	if _current_mode == mode:
 		return
@@ -87,23 +136,32 @@ func _refresh_weapon_labels() -> void:
 	var status: Dictionary = fighter.get_weapon_action_status()
 	if status.is_empty():
 		return
-	$Root/Attack.text = str(status.get("primary", "GOLPE"))
+	$Root/Attack.text = ""
+	_secondary_button.text = ""
+	_guard_button.text = ""
 	_secondary_button.visible = bool(status.get("secondary_visible", false))
 	_guard_button.visible = bool(status.get("guard_visible", false))
-	_secondary_button.text = str(status.get("secondary", ""))
-	_guard_button.text = str(status.get("guard", ""))
-	var remaining: float = float(status.get("guard_cd", 0.0))
-	var shield_hits: int = int(status.get("shield_hits", 0))
-	if remaining > 0.0 and shield_hits <= 0 and _guard_button.visible:
-		_guard_button.text += "\n%.1fs" % remaining
-	if shield_hits > 0 and _guard_button.visible:
-		_guard_button.text += "\n%d impactos" % shield_hits
-	var dagger_count := int(status.get("ready", 1))
-	var secondary_cd: float = float(status.get("secondary_cd", 0.0))
-	if _current_mode == 3 and dagger_count == 0 and secondary_cd > 0.0:
-		_secondary_button.text += "\n%.1fs" % secondary_cd
-	_secondary_button.disabled = (_current_mode == 3 and dagger_count == 0)
-	_guard_button.disabled = remaining > 0.0 or shield_hits > 0
+	var guard_remaining: float = float(status.get("guard_cd", 0.0))
+	var shield_hits := int(status.get("shield_hits", 0))
+	var count := int(status.get("ready", 2))
+	var cooldown: float = float(status.get("secondary_cd", 0.0))
+	var charge: float = float(status.get("charge", 0.0))
+	_guard_button.disabled = guard_remaining > 0.0 or shield_hits > 0
+	_secondary_button.disabled = _current_mode == 3 and count == 0
+	match _current_mode:
+		0:
+			_display_action("Attack", "sword", "CORTE")
+			_display_action("Secondary", "fire", "FUEGO")
+			_display_action("Guard", "shield", "%d GOLPE" % shield_hits if shield_hits > 0 else ("%.1fs" % guard_remaining if guard_remaining > 0.0 else "BLOQ."), 0.0, _guard_button.disabled)
+		1:
+			_display_action("Attack", "arrow", "FLECHA")
+			_display_action("Secondary", "bow", "CARGA %d%%" % roundi(charge * 100.0) if charge > 0.03 else "DISPARO", charge)
+		2:
+			_display_action("Attack", "staff", "HECHIZO")
+			_display_action("Guard", "shield", "%d GOLPES" % shield_hits if shield_hits > 0 else ("%.1fs" % guard_remaining if guard_remaining > 0.0 else "ESCUDO"), 0.0, _guard_button.disabled)
+		3:
+			_display_action("Attack", "daggers", "DAGAS")
+			_display_action("Secondary", "throw", "LANZAR %d/2" % count if count > 0 else ("%.1fs" % cooldown), 0.0, _secondary_button.disabled)
 
 
 func _input(event: InputEvent) -> void:

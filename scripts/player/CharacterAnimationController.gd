@@ -27,6 +27,10 @@ func tick(is_grounded: bool, velocity: Vector2) -> void:
 		state_tick = mini(state_tick + 1, 90)
 		_was_grounded = is_grounded
 		return
+	if state in [&"staff_cast", &"daggers_strike", &"fire_cast", &"guard_raise"] and state_tick < _duration_for(state):
+		state_tick += 1
+		_was_grounded = is_grounded
+		return
 	if state in [&"bow_stab", &"bow_kick", &"bow_shot"] and state_tick < _duration_for(state):
 		state_tick += 1
 		_was_grounded = is_grounded
@@ -115,6 +119,13 @@ func state_progress() -> float:
 		return 0.0
 	return clampf(float(state_tick) / float(duration), 0.0, 1.0)
 
+func play_weapon_action(next: StringName) -> void:
+	# Repeated fast dagger attacks must restart the visual attack phase.
+	state = next
+	state_tick = 0
+	state_changed.emit(state)
+
+
 func set_state(next: StringName) -> void:
 	if state == next:
 		return
@@ -136,6 +147,10 @@ func _duration_for(value: StringName) -> int:
 		&"bow_kick": return 22
 		&"bow_shot": return 28
 		&"bow_draw": return 90
+		&"daggers_strike": return 10
+		&"staff_cast": return 30
+		&"fire_cast": return 23
+		&"guard_raise": return 15
 		&"hit_light": return 14
 	return 1
 
