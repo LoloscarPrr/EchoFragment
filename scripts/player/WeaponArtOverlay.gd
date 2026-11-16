@@ -36,7 +36,7 @@ func _process(delta: float) -> void:
 	if visible and (animation_state == &"run_forward" or animation_state == &"bow_draw"):
 		queue_redraw()
 
-func _poly(points: Array[Vector2], tint: Color) -> void:
+func _poly(points: Array, tint: Color) -> void:
 	draw_colored_polygon(PackedVector2Array(points), tint)
 
 func _draw() -> void:
