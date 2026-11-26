@@ -38,7 +38,7 @@ func _run() -> void:
 	_check(player.equip_weapon(&"hunter_bow"), "bow equip works")
 	player._update_visual(1.0 / 60.0)
 	_check(player.articulated_visual.visible, "bow does not fall back to an obsolete proxy character")
-	_check(player.get_weapon_action_status()["secondary_visible"], "bow uses separate ranged button")
+	_check(not player.get_weapon_action_status()["secondary_visible"], "bow uses ONE action button")
 	_check(not player.get_weapon_action_status()["guard_visible"], "bow has no guard button")
 
 	player.add_item(&"shadow_daggers")
