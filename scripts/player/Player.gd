@@ -58,6 +58,7 @@ var _bow_projectile_damage := 20
 var _bow_projectile_speed := 650.0
 var _bow_projectile_knockback := 130.0
 var _bow_projectile_charge := 0.0
+var _bow_visual_last_charge := 0.0
 var _bow_hold_since := -1.0
 var _bow_hold_is_melee := false
 var _bow_hold_is_finisher := false
@@ -556,6 +557,7 @@ func _queue_bow_shot(now: float, finisher: bool = false, charge: float = 0.0) ->
 	_bow_projectile_speed = BowCharge.speed(780.0 if progression.has_skill(&"bow_piercing") else 650.0, charge)
 	_bow_projectile_knockback = BowCharge.knockback((220.0 if finisher else 160.0) if progression.has_skill(&"bow_piercing") else (200.0 if finisher else 130.0), charge)
 	_bow_projectile_charge = charge
+	_bow_visual_last_charge = charge
 	_bow_projectile_pierce = WeaponActionRules.bow_piercing(charge, progression.has_skill(&"bow_piercing"))
 	if finisher and progression.has_skill(&"bow_finisher"):
 		_bow_projectile_damage += 12
@@ -649,7 +651,10 @@ func _update_visual(delta: float) -> void:
 				animation_progress = clampf(1.0 - (_dodge_until - now) / maxf(0.01, duration), 0.0, 1.0)
 			articulated_visual.configure(animation_state, animation_progress, facing)
 			if articulated_visual.has_method("set_equipped_weapon"):
-				articulated_visual.call("set_equipped_weapon", weapon_mode, get_bow_charge_fraction())
+				var visual_charge := get_bow_charge_fraction()
+				if weapon_mode == WeaponMode.BOW and animation_controller.state == &"bow_shot":
+					visual_charge = _bow_visual_last_charge
+				articulated_visual.call("set_equipped_weapon", weapon_mode, visual_charge)
 	if is_instance_valid(canonical_visual):
 		canonical_visual.visible = show_canonical
 		if show_canonical:
