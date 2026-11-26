@@ -38,7 +38,7 @@ func _run() -> void:
 	check(controls.get_node("Root/Dodge/Glyph") is ActionGlyph, "dodge icon")
 	for mode_info in [
 		[&"rusted_sword", 0, "sword", "fire"],
-		[&"hunter_bow", 1, "arrow", "bow"],
+		[&"hunter_bow", 1, "bow", "bow"],
 		[&"apprentice_staff", 2, "staff", "shield"],
 		[&"shadow_daggers", 3, "daggers", "throw"]
 	]:
@@ -51,7 +51,7 @@ func _run() -> void:
 		controls._refresh_weapon_labels()
 		check(pose.equipped_mode == int(mode_info[1]), "pose mode sync " + str(item))
 		check(pose._weapon_art.weapon_mode == int(mode_info[1]), "weapon model sync " + str(item))
-		check(pose._weapon_art.visible == (int(mode_info[1]) != 0), "overlay visibility " + str(item))
+		check(pose._weapon_art.visible == (int(mode_info[1]) != 0) and not (int(mode_info[1]) == 1 and pose._bow_frames.ready), "overlay visibility " + str(item))
 		check(controls.get_node("Root/Attack/Glyph").symbol == str(mode_info[2]), "primary button symbol " + str(item))
 		var secondary_or_guard = controls.get_node("Root/Guard/Glyph") if int(mode_info[1]) == 2 else controls.get_node("Root/Secondary/Glyph")
 		check(secondary_or_guard.symbol == str(mode_info[3]), "secondary button symbol " + str(item))
