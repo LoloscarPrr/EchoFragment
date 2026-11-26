@@ -106,7 +106,7 @@ func _apply_pose() -> void:
 		_blade_material.set_shader_parameter("remove_forward_blade", equipped_mode != 0)
 		_blade_material.set_shader_parameter("atlas_origin", Vector2(float(region[0]), float(region[1])))
 		_blade_material.set_shader_parameter("frame_pivot", Vector2(float(pivot[0]), float(pivot[1])))
-	var approved_bow := equipped_mode == 1 and is_instance_valid(_bow_frames) and _bow_frames.ready
+	var approved_bow := equipped_mode == 1 and is_instance_valid(_bow_frames) and _bow_frames.is_loaded
 	_pose_sprite.visible = not approved_bow
 	if is_instance_valid(_weapon_art):
 		_weapon_art.configure(equipped_mode, state, facing, charged_fraction)
