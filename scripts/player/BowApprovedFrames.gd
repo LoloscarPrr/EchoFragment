@@ -15,7 +15,7 @@ var _charge_tex: Texture2D
 var last_frame := -1
 var last_sheet := ""
 
-func _is_loaded() -> void:
+func _ready() -> void:
 	is_loaded = ResourceLoader.exists(COMBO) and ResourceLoader.exists(CHARGED)
 	if not is_loaded:
 		visible = false
