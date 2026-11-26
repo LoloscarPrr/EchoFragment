@@ -23,7 +23,7 @@ func _run_smoke_test() -> void:
 	# Verify that the same touch buttons change with equipped weapon.
 	player.add_item(&"hunter_bow")
 	assert(player.equip_weapon(&"hunter_bow"))
-	assert(player.get_weapon_action_status()["secondary"] == "DISPARO")
+	assert(not player.get_weapon_action_status()["secondary_visible"])
 	assert(not player.get_weapon_action_status()["guard_visible"])
 	assert(controls.get_node("Root/Attack").text == "FLECHA" or player.weapon_mode == 1)
 
