@@ -38,7 +38,7 @@ func update_bow(state: StringName, progress: float, facing: float, charge: float
 	var p := clampf(progress, 0.0, 1.0)
 	var tension := clampf(charge, 0.0, 1.0)
 	match state:
-		&"idle_is_loaded":
+		&"idle_ready":
 			index = 0
 		&"run_forward":
 			index = 1 # Approved step-forward pose. Later frames can extend this.
