@@ -53,8 +53,11 @@ func _run() -> void:
 		check(pose._weapon_art.weapon_mode == int(mode_info[1]), "weapon model sync " + str(item))
 		check(pose._weapon_art.visible == (int(mode_info[1]) != 0) and not (int(mode_info[1]) == 1 and pose._bow_frames.is_loaded), "overlay visibility " + str(item))
 		check(controls.get_node("Root/Attack/Glyph").symbol == str(mode_info[2]), "primary button symbol " + str(item))
-		var secondary_or_guard = controls.get_node("Root/Guard/Glyph") if int(mode_info[1]) == 2 else controls.get_node("Root/Secondary/Glyph")
-		check(secondary_or_guard.symbol == str(mode_info[3]), "secondary button symbol " + str(item))
+		if int(mode_info[1]) == 1:
+			check(not controls.get_node("Root/Secondary").visible, "bow has no secondary action button")
+		else:
+			var secondary_or_guard = controls.get_node("Root/Guard/Glyph") if int(mode_info[1]) == 2 else controls.get_node("Root/Secondary/Glyph")
+			check(secondary_or_guard.symbol == str(mode_info[3]), "secondary button symbol " + str(item))
 		check(controls.get_node("Root/Attack").text.is_empty(), "no big text overlap")
 		check(pose.art_loaded, "weapon switch does not unload base atlas")
 	# Active weapon visuals must actually change with attack animations.
