@@ -487,7 +487,7 @@ func _attack_bow(now: float) -> void:
 		combo_changed.emit(_bow_combo_step)
 		_queue_bow_shot(now, true)
 		return
-	if in_combo and _bow_combo_step == BowCombo.ARROW_STAB:
+	if in_combo and _bow_combo_step == BowCombo.PUNCH_COMBO:
 		if not _spend_stamina(7.0):
 			return
 		_bow_combo_step = BowCombo.PUSH_KICK
@@ -497,7 +497,7 @@ func _attack_bow(now: float) -> void:
 	elif _bow_target_in_melee_range():
 		if not _spend_stamina(5.0):
 			return
-		_bow_combo_step = BowCombo.ARROW_STAB
+		_bow_combo_step = BowCombo.PUNCH_COMBO
 		_attack_locked_until = now + 0.31
 		animation_controller.play_weapon_action(&"bow_punch")
 		_queue_bow_melee(now, 0.13, 15, 85.0, 48.0)
