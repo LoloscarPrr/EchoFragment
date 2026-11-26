@@ -9,20 +9,20 @@ const CHARGED := "res://assets/player/portador_bow_v054/charged.png"
 const CELL := 448
 const ART_SCALE := 0.62
 
-var ready := false
+var is_loaded := false
 var _combo_tex: Texture2D
 var _charge_tex: Texture2D
 var last_frame := -1
 var last_sheet := ""
 
-func _ready() -> void:
-	ready = ResourceLoader.exists(COMBO) and ResourceLoader.exists(CHARGED)
-	if not ready:
+func _is_loaded() -> void:
+	is_loaded = ResourceLoader.exists(COMBO) and ResourceLoader.exists(CHARGED)
+	if not is_loaded:
 		visible = false
 		return
 	_combo_tex = load(COMBO) as Texture2D
 	_charge_tex = load(CHARGED) as Texture2D
-	ready = _combo_tex != null and _charge_tex != null
+	is_loaded = _combo_tex != null and _charge_tex != null
 	visible = false
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	centered = false
@@ -30,7 +30,7 @@ func _ready() -> void:
 	region_filter_clip_enabled = true
 
 func update_bow(state: StringName, progress: float, facing: float, charge: float) -> void:
-	if not ready:
+	if not is_loaded:
 		visible = false
 		return
 	var index := 0
@@ -38,7 +38,7 @@ func update_bow(state: StringName, progress: float, facing: float, charge: float
 	var p := clampf(progress, 0.0, 1.0)
 	var tension := clampf(charge, 0.0, 1.0)
 	match state:
-		&"idle_ready":
+		&"idle_is_loaded":
 			index = 0
 		&"run_forward":
 			index = 1 # Approved step-forward pose. Later frames can extend this.
