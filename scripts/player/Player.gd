@@ -58,11 +58,14 @@ var _bow_projectile_damage := 20
 var _bow_projectile_speed := 650.0
 var _bow_projectile_knockback := 130.0
 var _bow_projectile_charge := 0.0
+var _bow_visual_last_charge := 0.0
 var _bow_hold_since := -1.0
 var _bow_hold_is_melee := false
 var _bow_hold_is_finisher := false
 var _bow_queued_charge := -1.0
 var _bow_queued_finisher := false
+var _bow_tap_queued := false
+const BOW_HOLD_THRESHOLD := 0.25
 var _bow_attack_shape: RectangleShape2D
 var _bow_projectile_pierce := 1
 var _dagger_ready_at: Array[float] = [0.0, 0.0]
@@ -157,13 +160,14 @@ func _physics_process(delta: float) -> void:
 		_try_dodge(direction, now)
 
 	_tick_bow_hold(now)
-	if can_control and Input.is_action_just_pressed("attack"):
-		# Allow arrow stab -> kick to queue during recovery; drawing is separate.
-		animation_controller.buffer_action(&"attack", 32 if weapon_mode == WeaponMode.BOW else 6)
-
-	if can_control and animation_controller.has_buffered(&"attack") and now >= _attack_locked_until:
+	if can_control and Input.is_action_just_pressed("attack") and weapon_mode != WeaponMode.BOW:
+		animation_controller.buffer_action(&"attack")
+	if can_control and animation_controller.has_buffered(&"attack") and now >= _attack_locked_until and weapon_mode != WeaponMode.BOW:
 		animation_controller.consume_buffered(&"attack")
 		_try_attack(now)
+	if can_control and weapon_mode == WeaponMode.BOW and _bow_tap_queued and now >= _attack_locked_until:
+		_bow_tap_queued = false
+		_attack_bow(now)
 	_process_queued_bow_shot(now)
 
 	move_and_slide()
@@ -337,7 +341,7 @@ func get_weapon_action_status() -> Dictionary:
 			return {"primary": "ESPADA", "secondary": "FUEGO", "guard": "BLOQUEO", "secondary_visible": true, "guard_visible": true, "guard_cd": guard_cd, "shield_hits": _shield_hits}
 		WeaponMode.BOW:
 			var charge := get_bow_charge_fraction()
-			return {"primary": "FLECHA", "secondary": ("CARGA %d%%" % roundi(charge * 100.0)) if _bow_hold_since >= 0.0 else "DISPARO", "guard": "", "secondary_visible": true, "guard_visible": false, "charge": charge}
+			return {"primary": "ARCO", "secondary": "", "guard": "", "secondary_visible": false, "guard_visible": false, "charge": charge, "bow_single_button": true}
 		WeaponMode.DAGGERS:
 			var ready := WeaponActionRules.daggers_available(_dagger_ready_at, now)
 			var next_ready := minf(_dagger_ready_at[0], _dagger_ready_at[1])
@@ -421,22 +425,27 @@ func _attack_daggers(now: float) -> void:
 func _tick_bow_hold(now: float) -> void:
 	if not can_control or weapon_mode != WeaponMode.BOW:
 		return
-	# The secondary button handles hold/release. Melee always uses the primary.
-	if Input.is_action_just_pressed("weapon_secondary"):
+	# Exactly ONE input: a tap chooses the contextual combo/distance shot,
+	# holding charges the bow and releases a stronger projectile.
+	if Input.is_action_just_pressed("attack"):
 		_bow_hold_since = now
-		if now >= _attack_locked_until:
-			animation_controller.set_state(&"bow_draw")
-	if _bow_hold_since >= 0.0 and _bow_combo_step == BowCombo.PUSH_KICK:
-		# Preserve the kick finisher while the player holds to charge.
-		_bow_combo_deadline = now + 0.30
-	if Input.is_action_just_released("weapon_secondary") and _bow_hold_since >= 0.0:
-		_bow_queued_charge = BowCharge.fraction(now - _bow_hold_since)
-		_bow_queued_finisher = _bow_combo_step == BowCombo.PUSH_KICK and now <= _bow_combo_deadline
+	if _bow_hold_since >= 0.0:
+		var elapsed := now - _bow_hold_since
+		if elapsed >= BOW_HOLD_THRESHOLD:
+			if _bow_combo_step == BowCombo.PUSH_KICK:
+				_bow_combo_deadline = now + 0.35
+			if now >= _attack_locked_until:
+				animation_controller.set_state(&"bow_draw")
+	if Input.is_action_just_released("attack") and _bow_hold_since >= 0.0:
+		var held := now - _bow_hold_since
 		_bow_hold_since = -1.0
+		if held >= BOW_HOLD_THRESHOLD:
+			_bow_queued_charge = BowCharge.fraction(held)
+			_bow_queued_finisher = _bow_combo_step == BowCombo.PUSH_KICK and now <= _bow_combo_deadline
+			_bow_tap_queued = false
+		else:
+			_bow_tap_queued = true
 	_bow_hold_is_melee = false
-	if _bow_hold_since >= 0.0 and now >= _attack_locked_until:
-		if animation_controller.state != &"bow_draw":
-			animation_controller.set_state(&"bow_draw")
 
 
 func _process_queued_bow_shot(now: float) -> void:
@@ -466,22 +475,38 @@ func get_bow_charge_fraction() -> float:
 
 
 func _attack_bow(now: float) -> void:
-	# Independent short-range button: hand-held arrow -> broad push kick.
-	var is_kick := _bow_combo_step == BowCombo.ARROW_STAB and now <= _bow_combo_deadline
-	if is_kick:
+	# Context-sensitive one-button bow:
+	# tap 1: a close-range PUNCH (never stab with an arrow);
+	# tap 2: a knockback KICK; tap 3: a quick ARROW SHOT.
+	# If no enemy is close, any short tap fires an arrow directly.
+	var in_combo := now <= _bow_combo_deadline
+	if in_combo and _bow_combo_step == BowCombo.PUSH_KICK:
+		if not _spend_stamina(12.0):
+			return
+		_bow_combo_step = BowCombo.FINISHER_SHOT
+		combo_changed.emit(_bow_combo_step)
+		_queue_bow_shot(now, true)
+		return
+	if in_combo and _bow_combo_step == BowCombo.PUNCH_COMBO:
 		if not _spend_stamina(7.0):
 			return
 		_bow_combo_step = BowCombo.PUSH_KICK
 		_attack_locked_until = now + 0.36
-		animation_controller.set_state(&"bow_kick")
+		animation_controller.play_weapon_action(&"bow_kick")
 		_queue_bow_melee(now, 0.13, 18, 480.0, 62.0)
-	else:
-		if not _spend_stamina(4.0):
+	elif _bow_target_in_melee_range():
+		if not _spend_stamina(5.0):
 			return
-		_bow_combo_step = BowCombo.ARROW_STAB
-		_attack_locked_until = now + 0.26
-		animation_controller.set_state(&"bow_stab")
-		_queue_bow_melee(now, 0.09, 14, 75.0, 50.0)
+		_bow_combo_step = BowCombo.PUNCH_COMBO
+		_attack_locked_until = now + 0.31
+		animation_controller.play_weapon_action(&"bow_punch")
+		_queue_bow_melee(now, 0.13, 15, 85.0, 48.0)
+	else:
+		if not _spend_stamina(12.0):
+			return
+		_reset_bow_combo()
+		_queue_bow_shot(now, false)
+		return
 	_bow_combo_deadline = now + bow_combo_window
 	combo_changed.emit(_bow_combo_step)
 
@@ -532,6 +557,7 @@ func _queue_bow_shot(now: float, finisher: bool = false, charge: float = 0.0) ->
 	_bow_projectile_speed = BowCharge.speed(780.0 if progression.has_skill(&"bow_piercing") else 650.0, charge)
 	_bow_projectile_knockback = BowCharge.knockback((220.0 if finisher else 160.0) if progression.has_skill(&"bow_piercing") else (200.0 if finisher else 130.0), charge)
 	_bow_projectile_charge = charge
+	_bow_visual_last_charge = charge
 	_bow_projectile_pierce = WeaponActionRules.bow_piercing(charge, progression.has_skill(&"bow_piercing"))
 	if finisher and progression.has_skill(&"bow_finisher"):
 		_bow_projectile_damage += 12
@@ -571,6 +597,7 @@ func _cancel_bow_attack() -> void:
 	_bow_hold_is_finisher = false
 	_bow_queued_charge = -1.0
 	_bow_queued_finisher = false
+	_bow_tap_queued = false
 	_bow_melee_queued_at = -1.0
 	_bow_projectile_queued_at = -1.0
 	_reset_bow_combo()
@@ -624,7 +651,10 @@ func _update_visual(delta: float) -> void:
 				animation_progress = clampf(1.0 - (_dodge_until - now) / maxf(0.01, duration), 0.0, 1.0)
 			articulated_visual.configure(animation_state, animation_progress, facing)
 			if articulated_visual.has_method("set_equipped_weapon"):
-				articulated_visual.call("set_equipped_weapon", weapon_mode, get_bow_charge_fraction())
+				var visual_charge := get_bow_charge_fraction()
+				if weapon_mode == WeaponMode.BOW and animation_controller.state == &"bow_shot":
+					visual_charge = _bow_visual_last_charge
+				articulated_visual.call("set_equipped_weapon", weapon_mode, visual_charge)
 	if is_instance_valid(canonical_visual):
 		canonical_visual.visible = show_canonical
 		if show_canonical:

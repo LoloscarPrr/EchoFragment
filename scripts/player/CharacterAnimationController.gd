@@ -31,7 +31,7 @@ func tick(is_grounded: bool, velocity: Vector2) -> void:
 		state_tick += 1
 		_was_grounded = is_grounded
 		return
-	if state in [&"bow_stab", &"bow_kick", &"bow_shot"] and state_tick < _duration_for(state):
+	if state in [&"bow_stab", &"bow_punch", &"bow_kick", &"bow_shot"] and state_tick < _duration_for(state):
 		state_tick += 1
 		_was_grounded = is_grounded
 		return
@@ -144,6 +144,7 @@ func _duration_for(value: StringName) -> int:
 		&"land_light": return 8
 		&"attack_light": return TajoDelEcoTimeline.ATTACK_TICKS
 		&"bow_stab": return 16
+		&"bow_punch": return 19
 		&"bow_kick": return 22
 		&"bow_shot": return 28
 		&"bow_draw": return 90

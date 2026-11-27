@@ -3,9 +3,10 @@ name: Android Playtest APK
 on:
   workflow_dispatch:
   push:
-    branches: [main, feature/visual-safe-weapon-combat-v050, fix/ruinas-del-eco-tiling-v052, feature/portador-weapon-visual-v053]
+    branches: [main, feature/visual-safe-weapon-combat-v050, fix/ruinas-del-eco-tiling-v052, feature/portador-weapon-visual-v053, feature/bow-single-button-approved-frames-v054]
     paths:
       - "scripts/**"
+      - "assets/player/portador_bow_v054/**"
       - "scenes/**"
       - "project.godot"
       - "export_presets.cfg"
@@ -33,6 +34,31 @@ jobs:
           test -f /root/debug.keystore
           test -f ~/.config/godot/editor_settings-4.3.tres
 
+      - name: Verify both approved 3×3 bow sprite atlases exist
+        run: |
+          test -s assets/player/portador_bow_v054/combo.png
+          test -s assets/player/portador_bow_v054/charged.png
+          file assets/player/portador_bow_v054/*.png
+          # Do not publish an APK with the old fallback art.
+          python3 - <<'PY'
+          import struct
+          for name in ("combo", "charged"):
+              p = f"assets/player/portador_bow_v054/{name}.png"
+              with open(p, "rb") as f:
+                  head = f.read(24)
+              assert head[:8] == b"\\x89PNG\\r\\n\\x1a\\n", p
+              assert struct.unpack(">II", head[16:24]) == (1344, 1344), p
+          import hashlib
+          expected = {
+              "combo": "4fa22dfe9e95536b390fa016359f39f7cfc63cc6c125a660232a9a6d2a71b6f3",
+              "charged": "0126471471efc25c78d34a015e9a943921f5cf6e36e5e96ffc2fcc179a2b02ec",
+          }
+          for name, digest in expected.items():
+              with open(f"assets/player/portador_bow_v054/{name}.png", "rb") as f:
+                  assert hashlib.file_digest(f, "sha256").hexdigest() == digest, name
+          print("Both approved 9-cell bow atlases present and identical to the supplied art")
+          PY
+
       - name: Validate project
         run: |
           godot --headless --path . --editor --quit
@@ -44,14 +70,14 @@ jobs:
           GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
           mkdir -p build
-          godot --headless --verbose --path . --export-debug "Android Playtest" build/EchoFragment-0.5.3.apk
-          test -s build/EchoFragment-0.5.3.apk
-          ls -lh build/EchoFragment-0.5.3.apk
+          godot --headless --verbose --path . --export-debug "Android Playtest" build/EchoFragment-0.5.4.apk
+          test -s build/EchoFragment-0.5.4.apk
+          ls -lh build/EchoFragment-0.5.4.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: EchoFragment-0.5.3-APK
-          path: build/EchoFragment-0.5.3.apk
+          name: EchoFragment-0.5.4-APK
+          path: build/EchoFragment-0.5.4.apk
           if-no-files-found: error
           retention-days: 30

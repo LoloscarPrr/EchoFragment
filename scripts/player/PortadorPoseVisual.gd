@@ -14,6 +14,7 @@ var equipped_mode := 0
 var charged_fraction := 0.0
 var _weapon_art: WeaponArtOverlay
 var _blade_material: ShaderMaterial
+var _bow_frames: BowApprovedFrames
 
 func _ready() -> void:
 	demo_cycle = false
@@ -40,6 +41,9 @@ func _ready() -> void:
 	_weapon_art = WeaponArtOverlay.new()
 	_weapon_art.name = "EquippedWeaponArt"
 	add_child(_weapon_art)
+	_bow_frames = BowApprovedFrames.new()
+	_bow_frames.name = "ApprovedBowFrames"
+	add_child(_bow_frames)
 	art_loaded = true
 	_apply_pose()
 
@@ -83,7 +87,7 @@ func _apply_pose() -> void:
 		# Temporary readable poses until the bow, daggers and staff get
 		# their own frames in the canonical approved armor style.
 		&"bow_draw": frame_index = 8
-		&"bow_stab": frame_index = 9
+		&"bow_stab", &"bow_punch": frame_index = 9
 		&"bow_kick": frame_index = 10
 		&"bow_shot": frame_index = 9 if state_progress < 0.55 else 10
 		&"staff_cast": frame_index = 8 if state_progress < 0.3 else (9 if state_progress < 0.7 else 10)
@@ -102,5 +106,12 @@ func _apply_pose() -> void:
 		_blade_material.set_shader_parameter("remove_forward_blade", equipped_mode != 0)
 		_blade_material.set_shader_parameter("atlas_origin", Vector2(float(region[0]), float(region[1])))
 		_blade_material.set_shader_parameter("frame_pivot", Vector2(float(pivot[0]), float(pivot[1])))
+	var approved_bow := equipped_mode == 1 and is_instance_valid(_bow_frames) and _bow_frames.is_loaded
+	_pose_sprite.visible = not approved_bow
 	if is_instance_valid(_weapon_art):
 		_weapon_art.configure(equipped_mode, state, facing, charged_fraction)
+		_weapon_art.visible = not approved_bow and equipped_mode != 0
+	if is_instance_valid(_bow_frames):
+		_bow_frames.visible = approved_bow
+		if approved_bow:
+			_bow_frames.update_bow(state, state_progress, facing, charged_fraction)

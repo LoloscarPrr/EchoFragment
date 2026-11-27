@@ -154,8 +154,9 @@ func _refresh_weapon_labels() -> void:
 			_display_action("Secondary", "fire", "FUEGO")
 			_display_action("Guard", "shield", "%d GOLPE" % shield_hits if shield_hits > 0 else ("%.1fs" % guard_remaining if guard_remaining > 0.0 else "BLOQ."), 0.0, _guard_button.disabled)
 		1:
-			_display_action("Attack", "arrow", "FLECHA")
-			_display_action("Secondary", "bow", "CARGA %d%%" % roundi(charge * 100.0) if charge > 0.03 else "DISPARO", charge)
+			# One button performs contextual punches, kick, final arrow,
+			# distance shots, and hold-to-charge.
+			_display_action("Attack", "bow", "CARGA %d%%" % roundi(charge * 100.0) if charge > 0.03 else "ARCO", charge)
 		2:
 			_display_action("Attack", "staff", "HECHIZO")
 			_display_action("Guard", "shield", "%d GOLPES" % shield_hits if shield_hits > 0 else ("%.1fs" % guard_remaining if guard_remaining > 0.0 else "ESCUDO"), 0.0, _guard_button.disabled)
