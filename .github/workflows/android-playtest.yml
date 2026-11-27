@@ -48,7 +48,15 @@ jobs:
                   head = f.read(24)
               assert head[:8] == b"\\x89PNG\\r\\n\\x1a\\n", p
               assert struct.unpack(">II", head[16:24]) == (1344, 1344), p
-          print("Both approved 9-cell bow atlases present")
+          import hashlib
+          expected = {
+              "combo": "4fa22dfe9e95536b390fa016359f39f7cfc63cc6c125a660232a9a6d2a71b6f3",
+              "charged": "0126471471efc25c78d34a015e9a943921f5cf6e36e5e96ffc2fcc179a2b02ec",
+          }
+          for name, digest in expected.items():
+              with open(f"assets/player/portador_bow_v054/{name}.png", "rb") as f:
+                  assert hashlib.file_digest(f, "sha256").hexdigest() == digest, name
+          print("Both approved 9-cell bow atlases present and identical to the supplied art")
           PY
 
       - name: Validate project
