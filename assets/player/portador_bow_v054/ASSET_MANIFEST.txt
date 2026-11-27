@@ -1,0 +1,20 @@
+EchoFragment | Arco v0.5.4 | Atlas aprobados
+=================================================
+Este archivo identifica los dos PNG que deben incluirse en la APK.
+NO reemplazarlos con ilustraciones generadas de referencia o overlays.
+
+combo.png
+  PNG RGBA 1344x1344 (3x3 cuadros de 448x448)
+  SHA-256: 4fa22dfe9e95536b390fa016359f39f7cfc63cc6c125a660232a9a6d2a71b6f3
+
+charged.png
+  PNG RGBA 1344x1344 (3x3 cuadros de 448x448)
+  SHA-256: 0126471471efc25c78d34a015e9a943921f5cf6e36e5e96ffc2fcc179a2b02ec
+
+Fuente: hojas de sprites que el usuario aprobó en la conversación.
+Una sola acción de ataque del arco:
+  cerca: puñetazos -> patada de alejamiento -> flechazo
+  lejos: flechazo
+  mantener: cargar, soltar: disparo cargado
+
+Estas imágenes deben situarse en la carpeta de este manifiesto.
